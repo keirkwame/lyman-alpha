@@ -3,6 +3,7 @@ import random as rd
 import numpy as np
 import numpy.random as npr
 import scipy.integrate as spi
+import scipy.special as sps
 import copy as cp
 import astropy.units as u
 import spectra as sa
@@ -88,9 +89,35 @@ class FourierEstimator3D(FourierEstimator):
             power_unique[i] = np.mean(flux_power[k_box == k_unique[i]])
         return power_unique, k_unique
 
-    def get_flux_power_3D_binned(self,k_box,n_bins,norm=True):
-        k_argsort = np.argsort(k_box,axis=None)
-        k_sorted = sort_3D_to_1D(k_box, k_argsort)
+    def get_flux_power_3D_sorted(self,k_box,norm=True,mu_box=None):
+        k_argsort = np.argsort(k_box, axis=None)
         flux_power = self.get_flux_power_3D(norm)[0]
-        power_sorted = sort_3D_to_1D(flux_power, k_argsort)
-        return bin_data(power_sorted,n_bins), bin_data(k_sorted,n_bins)
+        if mu_box == None:
+            return sort_3D_to_1D(flux_power, k_argsort), sort_3D_to_1D(k_box, k_argsort)
+        else:
+            return sort_3D_to_1D(flux_power, k_argsort),sort_3D_to_1D(k_box, k_argsort),sort_3D_to_1D(mu_box, k_argsort)
+
+    def get_flux_power_3D_binned(self,k_box,n_bins,norm=True):
+        power_sorted, k_sorted = self.get_flux_power_3D_sorted(k_box,norm)
+        return bin_data(power_sorted,n_bins), bin_data(k_sorted,n_bins), power_sorted
+
+    def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True):
+        power_sorted, k_sorted, mu_sorted = self.get_flux_power_3D_sorted(k_box, norm, mu_box)
+        mu_2D_k_sorted = arrange_data_in_2D(mu_sorted, n_bins)
+        k_2D_k_sorted = arrange_data_in_2D(k_sorted, n_bins)
+        power_2D_k_sorted = arrange_data_in_2D(power_sorted, n_bins)
+        mu_2D_mu_argsort = np.argsort(mu_2D_k_sorted)
+        mu_2D_mu_sorted = np.zeros_like(mu_2D_k_sorted)
+        k_2D_mu_sorted = np.zeros_like(k_2D_k_sorted)
+        power_2D_mu_sorted = np.zeros_like(power_2D_k_sorted)
+        for i in range(mu_2D_mu_sorted.shape[0]):
+            mu_2D_mu_sorted[i,:] = mu_2D_k_sorted[i,mu_2D_mu_argsort[i]]
+            k_2D_mu_sorted[i,:] = k_2D_k_sorted[i,mu_2D_mu_argsort[i]]
+            power_2D_mu_sorted[i,:] = power_2D_k_sorted[i,mu_2D_mu_argsort[i]]
+        return power_2D_mu_sorted, k_2D_mu_sorted, mu_2D_mu_sorted
+
+    def get_flux_power_3D_multipole(self,multipole,k_box,mu_box,n_bins,norm=True):
+        power_mu_sorted, k_mu_sorted, mu_mu_sorted = self.get_flux_power_legendre_integrand(k_box,mu_box,n_bins,norm)
+        total_integrand = power_mu_sorted * evaluate_legendre_polynomial(mu_mu_sorted,multipole)
+        power_integrated = np.trapz(total_integrand,x=mu_mu_sorted) * ((2.*multipole + 1.) / 2.)
+        return power_integrated, np.mean(k_mu_sorted,axis=-1), power_mu_sorted #P_l(mod(k)), mod(k)

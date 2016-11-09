@@ -15,14 +15,19 @@ from power_spectra import *
 from boxes import *
 from fourier_estimators import *
 
-def snapshot_to_power_3D_binned(snap_num,snap_dir,grid_samps,spectrum_resolution,n_bins,reload_snapshot=True,norm=True):
+def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True):
     box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot)
     box_instance.convert_fourier_units_to_distance = True
     print(box_instance._n_samp)
-    simu_box = box_instance.skewers_realisation()
+    return box_instance.skewers_realisation(), box_instance.k_box(), box_instance.mu_box()
+
+def boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=True):
     power_instance = FourierEstimator3D(simu_box)
-    k_box = box_instance.k_box()
     return power_instance.get_flux_power_3D_binned(k_box,n_bins,norm=norm)
+
+def boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=True):
+    power_instance = FourierEstimator3D(simu_box)
+    return power_instance.get_flux_power_3D_multipole(multipole, k_box, mu_box, n_bins, norm=norm)
 
 if __name__ == "__main__":
     """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}"""
@@ -35,4 +40,9 @@ if __name__ == "__main__":
     n_bins = 10000
     reload_snapshot = False
     norm = True
-    power_binned, k_binned = snapshot_to_power_3D_binned(snap_num,snap_dir,grid_samps,spectrum_resolution,n_bins,reload_snapshot=reload_snapshot,norm=norm)
+
+    multipole = 0
+
+    simu_box, k_box, mu_box = snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot)
+    power_binned, k_binned, power_k_sorted = boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=norm)
+    power_binned_ell, k_binned_ell, power_mu_sorted = boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=norm)

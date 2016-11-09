@@ -33,6 +33,12 @@ class Box(object):
         z = self.k_i('z')[np.newaxis,np.newaxis,:]
         return np.sqrt(x**2 + y**2 + z**2)
 
+    def mu_box(self):
+        x = self.k_i('x')[:, np.newaxis, np.newaxis]
+        y = self.k_i('y')[np.newaxis, :, np.newaxis]
+        z = self.k_i('z')[np.newaxis, np.newaxis, :]
+        return z / np.sqrt(x**2 + y**2 + z**2)
+
     def hubble_z(self):
         return self._H0 * np.sqrt(self._omega_m * (1 + self._redshift) ** 3 + 1. - self._omega_m)
 
