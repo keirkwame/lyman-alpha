@@ -37,7 +37,7 @@ class PowerLawPowerSpectrum(PowerSpectrum):
         self._pow_pivot = pow_pivot
         self._pow_amp = pow_amp
 
-    def evaluate3d_isotropic(self, k):
+    def _evaluate3d_isotropic(self, k):
         Pk = self._pow_amp * (k / self._pow_pivot) ** self._pow_index
         if is_astropy_quantity(k):
             return Pk
@@ -45,15 +45,23 @@ class PowerLawPowerSpectrum(PowerSpectrum):
             return Pk.value
 
 
+class IsotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
+    """Sub-class of PowerLawPowerSpectrum to evaluate an isotropic version of a power law power spectrum"""
+    def __init__(self, pow_index, pow_pivot, pow_amp):
+        super(IsotropicPowerLawPowerSpectrum, self).__init__(pow_index, pow_pivot, pow_amp)
+
+    def evaluate3d(self, k, *_, **__):
+        return self._evaluate3d_isotropic(k)
+
+
 class AnisotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
     """Sub-class of PowerLawPowerSpectrum to evaluate an anisotropic correction to a power law power spectrum"""
     def __init__(self,pow_index,pow_pivot,pow_amp,mu_coefficients): #CURRENTLY WRITTEN FOR CONSTANT BIASES
-        assert is_astropy_quantity(pow_pivot)
         super(AnisotropicPowerLawPowerSpectrum, self).__init__(pow_index,pow_pivot,pow_amp)
         self._mu_coefficients = mu_coefficients #tuple from highest order to zeroth order (constant)
 
-    def evaluate3d_anisotropic(self,k,mu):
-        return self.evaluate3d_isotropic(k) * np.polyval(self._mu_coefficients,mu)
+    def evaluate3d(self,k,mu, *_, **__):
+        return self._evaluate3d_isotropic(k) * np.polyval(self._mu_coefficients,mu)
 
 
 class CAMBPowerSpectrum(PowerSpectrum): #Sub-class to be created
@@ -61,5 +69,5 @@ class CAMBPowerSpectrum(PowerSpectrum): #Sub-class to be created
     def __init__(self,fname):
         pass
 
-    def evaluate3d(self,k):
+    def evaluate3d(self,k, *_, **__):
         return 0

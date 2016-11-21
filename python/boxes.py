@@ -57,22 +57,20 @@ class GaussianBox(Box):
             self.voxel_lens[i] = self._x_max[i] / (self._n_samp[i] - 1)
             self.voxel_velocities[i] = self.voxel_lens[i] * self.hubble_z()
 
-    def isotropic_power_law_gauss_realisation(self, pow_index, pow_pivot, pow_amp): #CHANGE SO NOT HARD-CODED TO POWER LAW
+    def _gauss_realisation(self, power_spectrum_instance):
         k_box = self.k_box()
-        print("Generated Fourier-space box of k-values")
-        box_spectra = PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp)
-        gauss_k=np.sqrt(0.5*box_spectra.evaluate3d(k_box))*(npr.standard_normal(size=k_box.shape)+npr.standard_normal(size=k_box.shape)*1.j)
-        gauss_k[k_box == 0.] = 0. #Zeroing the mean
-        print("Generated Fourier-space box of Gaussian perturbations")
-        gauss_x = np.fft.ifftn(gauss_k, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2))
-        print("Transformed to real-space box of Gaussian perturbations")
+        mu_box = self.mu_box()
+        gauss_k=np.sqrt(0.5*power_spectrum_instance.evaluate3d(k_box,mu_box))*(npr.standard_normal(size=k_box.shape)+npr.standard_normal(size=k_box.shape)*1.j)
+        gauss_k[k_box == 0.] = 0.  # Zeroing the mean
+        return np.fft.ifftn(gauss_k, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2))
 
-        return gauss_x
+    def isotropic_power_law_gauss_realisation(self,pow_index,pow_pivot,pow_amp):
+        box_spectra = IsotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
+        return self._gauss_realisation(box_spectra)
 
     def anisotropic_power_law_gauss_realisation(self, pow_index, pow_pivot, pow_amp, mu_coefficients):
-        box_spectra = AnisotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp,mu_coefficients)
-
-        return 0
+        box_spectra = AnisotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp, mu_coefficients)
+        return self._gauss_realisation(box_spectra)
 
     def isotropic_CAMB_gauss_realisation(self):
         return 0
