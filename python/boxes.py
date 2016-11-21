@@ -10,6 +10,7 @@ import griddedspectra as gs
 import randspectra as rs
 import sys
 
+from power_spectra import *
 from utils import *
 
 class Box(object):
@@ -56,7 +57,7 @@ class GaussianBox(Box):
             self.voxel_lens[i] = self._x_max[i] / (self._n_samp[i] - 1)
             self.voxel_velocities[i] = self.voxel_lens[i] * self.hubble_z()
 
-    def gauss_realisation(self,pow_index,pow_pivot,pow_amp): #CHANGE SO NOT HARD-CODED TO POWER LAW
+    def isotropic_power_law_gauss_realisation(self, pow_index, pow_pivot, pow_amp): #CHANGE SO NOT HARD-CODED TO POWER LAW
         k_box = self.k_box()
         print("Generated Fourier-space box of k-values")
         box_spectra = PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp)
@@ -66,7 +67,18 @@ class GaussianBox(Box):
         gauss_x = np.fft.ifftn(gauss_k, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2))
         print("Transformed to real-space box of Gaussian perturbations")
 
-        return gauss_k
+        return gauss_x
+
+    def anisotropic_power_law_gauss_realisation(self, pow_index, pow_pivot, pow_amp, mu_coefficients):
+        box_spectra = AnisotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp,mu_coefficients)
+
+        return 0
+
+    def isotropic_CAMB_gauss_realisation(self):
+        return 0
+
+    def anisotropic_CAMB_gauss_realisation(self):
+        return 0
 
 
 class SimulationBox(Box):

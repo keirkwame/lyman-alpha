@@ -75,7 +75,8 @@ class FourierEstimator3D(FourierEstimator):
         if norm == False:
             norm_fac = 1.
         elif norm == True:
-            norm_fac = flux_real.size
+            norm_fac = flux_real.size #CHECK THIS!!!
+        print(norm_fac)
         df_hat = np.fft.fftn(flux_real) / norm_fac
         flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
         return flux_power, df_hat
