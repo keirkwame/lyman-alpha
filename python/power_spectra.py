@@ -60,8 +60,21 @@ class AnisotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
         super(AnisotropicPowerLawPowerSpectrum, self).__init__(pow_index,pow_pivot,pow_amp)
         self._mu_coefficients = mu_coefficients #tuple from highest order to zeroth order (constant)
 
+        self._legendre_integration_weights = np.zeros((5, 5)) #multipole 0 - 5; weight of mu^4 - mu^0
+        self._fill_legendre_integration_weights()
+
+    def _fill_legendre_integration_weights(self):
+        self._legendre_integration_weights[0,:] = np.array([1./5.,0.,1./3.,0.,1.])
+        self._legendre_integration_weights[1,:] = np.array([0.,3./5.,0.,1.,0.])
+        self._legendre_integration_weights[2,:] = np.array([4./7.,0.,2./3.,0.,0.])
+        self._legendre_integration_weights[3,:] = np.array([0.,2./5.,0.,0.,0.])
+        self._legendre_integration_weights[4,:] = np.array([8./35.,0.,0.,0.,0.])
+
     def evaluate3d(self,k,mu, *_, **__):
         return self._evaluate3d_isotropic(k) * np.polyval(self._mu_coefficients,mu)
+
+    def evaluate_multipole(self,multipole,k):
+        return self._evaluate3d_isotropic(k)*np.sum(self._mu_coefficients*self._legendre_integration_weights[multipole])
 
 
 class CAMBPowerSpectrum(PowerSpectrum): #Sub-class to be created

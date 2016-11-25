@@ -28,6 +28,18 @@ class Box(object):
             box_units = self.voxel_lens[i]
         return np.fft.fftfreq(self._n_samp[i], d=box_units)
 
+    def k_z_mod_box(self): #Generalise to any k_i
+        x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]
+        y = np.zeros_like(self.k_i('y'))[np.newaxis, :, np.newaxis]
+        z = self.k_i('z')[np.newaxis, np.newaxis, :]
+        return x + y + np.absolute(z)
+
+    def k_perp_box(self): #Generalise to any pair of k_i
+        x = self.k_i('x')[:, np.newaxis, np.newaxis]
+        y = self.k_i('y')[np.newaxis, :, np.newaxis]
+        z = np.zeros_like(self.k_i('z'))[np.newaxis, np.newaxis, :]
+        return np.sqrt(x**2 + y**2) + z
+
     def k_box(self):
         x = self.k_i('x')[:,np.newaxis,np.newaxis]
         y = self.k_i('y')[np.newaxis,:,np.newaxis]

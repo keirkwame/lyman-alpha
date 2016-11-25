@@ -45,7 +45,7 @@ class FourierEstimator1D(FourierEstimator):
 
 class FourierEstimator3D(FourierEstimator):
     """Sub-class to calculate 3D power spectra"""
-    def __init__(self,gauss_box,grid=True,x_step=1,y_step=1,n_skewers=0):
+    def __init__(self,gauss_box,grid=True,x_step=1,y_step=1,n_skewers=0): #Probably want to init with k_box, etc.
         super(FourierEstimator3D, self).__init__(gauss_box)
         self._grid = grid
         self._x_step = x_step
@@ -81,6 +81,11 @@ class FourierEstimator3D(FourierEstimator):
         flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
         return flux_power, df_hat
 
+    def get_flux_power_3D_cylindrical_coords(self,k_z_mod_box,k_perp_box,n_bins_z,n_bins_perp,norm=True):
+        #Need to generalise sorting of power by two coordinates!!!
+        power_sorted,k_z_sorted,k_perp_sorted = self.get_flux_power_legendre_integrand(k_z_mod_box,k_perp_box,n_bins_z,norm)
+        return bin_2D_data(power_sorted,n_bins_perp),bin_2D_data(k_z_sorted,n_bins_perp),bin_2D_data(k_perp_sorted,n_bins_perp)
+
     def get_flux_power_3D_mod_k(self,k_box,norm=True):
         flux_power = self.get_flux_power_3D(norm)[0]
         k_unique = np.unique(k_box)
@@ -100,9 +105,9 @@ class FourierEstimator3D(FourierEstimator):
 
     def get_flux_power_3D_binned(self,k_box,n_bins,norm=True):
         power_sorted, k_sorted = self.get_flux_power_3D_sorted(k_box,norm)
-        return bin_data(power_sorted,n_bins), bin_data(k_sorted,n_bins), power_sorted
+        return bin_data(power_sorted,n_bins), bin_data(k_sorted,n_bins), power_sorted, k_sorted
 
-    def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True):
+    def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True): #NEEDS TIDYING-UP!!!
         power_sorted, k_sorted, mu_sorted = self.get_flux_power_3D_sorted(k_box, norm, mu_box)
         mu_2D_k_sorted = arrange_data_in_2D(mu_sorted, n_bins)
         k_2D_k_sorted = arrange_data_in_2D(k_sorted, n_bins)
