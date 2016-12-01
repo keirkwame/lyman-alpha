@@ -56,7 +56,7 @@ class IsotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
 
 class AnisotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
     """Sub-class of PowerLawPowerSpectrum to evaluate an anisotropic correction to a power law power spectrum"""
-    def __init__(self,pow_index,pow_pivot,pow_amp,mu_coefficients): #CURRENTLY WRITTEN FOR CONSTANT BIASES
+    def __init__(self,pow_index,pow_pivot,pow_amp,mu_coefficients): #CURRENTLY WRITTEN FOR CONSTANT BIASES - MAKE MU_COEFFS A FUNC OF K_PARA/PERP
         super(AnisotropicPowerLawPowerSpectrum, self).__init__(pow_index,pow_pivot,pow_amp)
         self._mu_coefficients = mu_coefficients #tuple from highest order to zeroth order (constant)
 
@@ -71,10 +71,14 @@ class AnisotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
         self._legendre_integration_weights[4,:] = np.array([8./35.,0.,0.,0.,0.])
 
     def evaluate3d(self,k,mu, *_, **__):
-        return self._evaluate3d_isotropic(k) * np.polyval(self._mu_coefficients,mu)
+        k_para, k_perp = spherical_to_cylindrical_coordinates(k, mu)
+        return self._evaluate3d_isotropic(k) * np.polyval(self._mu_coefficients(k_para,k_perp),mu)
 
-    def evaluate_multipole(self,multipole,k):
-        return self._evaluate3d_isotropic(k)*np.sum(self._mu_coefficients*self._legendre_integration_weights[multipole])
+    def evaluate_multipole(self,multipole,k): #MAYBE MORE TESTING?
+        mu_samples = np.linspace(-1.,1.,2000) * u.dimensionless_unscaled
+        anisotropic_integrand=self.evaluate3d(k[:,np.newaxis],mu_samples[np.newaxis,:])*evaluate_legendre_polynomial(mu_samples[np.newaxis,:],multipole)
+        return np.trapz(anisotropic_integrand,mu_samples[np.newaxis,:]) * ((2.*multipole + 1.) / 2.)
+        #return self._evaluate3d_isotropic(k)*np.sum(self._mu_coefficients*self._legendre_integration_weights[multipole])
 
 
 class CAMBPowerSpectrum(PowerSpectrum): #Sub-class to be created

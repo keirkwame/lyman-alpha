@@ -34,3 +34,8 @@ def is_astropy_quantity(var):
 def evaluate_legendre_polynomial(array,multipole):
     legendre_polynomial = sps.legendre(multipole)  # l-th order Legendre polynomial
     return legendre_polynomial(array.value) * u.dimensionless_unscaled
+
+def spherical_to_cylindrical_coordinates(k,mu):
+    k_para = k * mu
+    k_perp = k * np.sqrt(1. - mu**2)
+    return k_para, k_perp

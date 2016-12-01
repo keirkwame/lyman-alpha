@@ -13,8 +13,9 @@ from fourier_estimators import *
 def test_anisotropic_power_spectra_isotropic_limit():
     test_k = np.arange(1.e-3,1.e+2,1.e-3) / u.Mpc
     isotropic_power_instance = IsotropicPowerLawPowerSpectrum(-1.,1./u.Mpc,1.)
-    anisotropic_power_instance = AnisotropicPowerLawPowerSpectrum(-1.,1./u.Mpc,1.,(0.,0.,0.,0.,1.))
-    npt.assert_array_equal(anisotropic_power_instance.evaluate_multipole(0,test_k),isotropic_power_instance.evaluate3d(test_k))
+    anisotropic_power_instance = AnisotropicPowerLawPowerSpectrum(-1.,1./u.Mpc,1.,lambda a,b:np.array([0.,0.,0.,0.,1.]))
+    npt.assert_allclose(anisotropic_power_instance.evaluate_multipole(0,test_k),isotropic_power_instance.evaluate3d(test_k))
+    #return anisotropic_power_instance.evaluate_multipole(0,test_k),isotropic_power_instance.evaluate3d(test_k)
 
 def test_3D_flux_power_zeros():
     test_box = np.zeros((100,150,200))

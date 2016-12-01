@@ -92,8 +92,8 @@ if __name__ == "__main__":
     simu_box, k_box, mu_box, box_ins = isotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, box_size, n_samp,
                                                                 redshift, H0, omega_m)
     #power_unique, k_unique = boxes_to_power_3D_mod_k_unique(simu_box,k_box)
-    power_1D, k_mod, raw_power, raw_k = boxes_to_power_3D_binned(simu_box,k_box,100)
-    power,k_z,k_perp = boxes_to_power_3D_cylindrical_binned(simu_box,box_ins.k_z_mod_box(),box_ins.k_perp_box(),100,100)
+    power_1D, k_mod, raw_power, raw_k = boxes_to_power_3D_binned(simu_box,k_box,400)
+    power,k_z,k_perp = boxes_to_power_3D_cylindrical_binned(simu_box,box_ins.k_z_mod_box(),box_ins.k_perp_box(),30,30)
     power_instance = IsotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
     full_analytic = power_instance.evaluate3d(raw_k)
     full_analytic[0] = 0.
