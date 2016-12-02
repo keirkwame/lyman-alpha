@@ -58,7 +58,8 @@ class AnisotropicPowerLawPowerSpectrum(PowerLawPowerSpectrum):
     """Sub-class of PowerLawPowerSpectrum to evaluate an anisotropic correction to a power law power spectrum"""
     def __init__(self,pow_index,pow_pivot,pow_amp,mu_coefficients): #CURRENTLY WRITTEN FOR CONSTANT BIASES - MAKE MU_COEFFS A FUNC OF K_PARA/PERP
         super(AnisotropicPowerLawPowerSpectrum, self).__init__(pow_index,pow_pivot,pow_amp)
-        self._mu_coefficients = mu_coefficients #tuple from highest order to zeroth order (constant)
+        self._mu_coefficients = mu_coefficients #function that returns mu_coeffs from highest order to zeroth order
+        #tuple from highest order to zeroth order (constant)
 
         self._legendre_integration_weights = np.zeros((5, 5)) #multipole 0 - 5; weight of mu^4 - mu^0
         self._fill_legendre_integration_weights()

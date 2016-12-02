@@ -61,7 +61,7 @@ if __name__ == "__main__":
     snap_num = int(sys.argv[2])
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
-    n_bins = 50
+    n_bins = 100
     reload_snapshot = False
     norm = True
 
@@ -74,22 +74,28 @@ if __name__ == "__main__":
     H0 = (67.31 * u.km) / (u.s * u.Mpc)
     omega_m = 0.3149
 
-    mu_coefficients = (1,0,1,0,1)
+    #mu_coefficients = (1,0,1,0,1)
+    def mu_coefficients(k_para,k_perp):
+        amp = 1.
+        mean = 0. / u.Mpc
+        stddev = 1. / u.Mpc
+        scale_dependence = amp * np.exp((k_para - mean)**2 / (-2. * stddev**2))
+        return np.array([0.*scale_dependence,0.*scale_dependence,0.*scale_dependence,0.*scale_dependence,1.*scale_dependence])
 
-    multipole = 0
+    multipole = 5
 
     #simu_box, k_box, mu_box = snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot)
     #simu_box, k_box, mu_box = isotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, box_size, n_samp, redshift, H0, omega_m)
-    '''simu_box, k_box, mu_box = anisotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
-    power_binned, k_binned, power_k_sorted = boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=norm)
+    simu_box, k_box, mu_box = anisotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
+    #power_binned, k_binned, power_k_sorted = boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=norm)
     power_binned_ell, k_binned_ell, power_mu_sorted = boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=norm)
 
     #power_instance = IsotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
     power_instance = AnisotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp, mu_coefficients)
     true_power = power_instance.evaluate_multipole(multipole, k_binned_ell)
-    isotropic_power_component = power_instance._evaluate3d_isotropic(k_binned_ell)'''
+    isotropic_power_component = power_instance._evaluate3d_isotropic(k_binned_ell)
 
-    simu_box, k_box, mu_box, box_ins = isotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, box_size, n_samp,
+    '''simu_box, k_box, mu_box, box_ins = isotropic_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, box_size, n_samp,
                                                                 redshift, H0, omega_m)
     #power_unique, k_unique = boxes_to_power_3D_mod_k_unique(simu_box,k_box)
     power_1D, k_mod, raw_power, raw_k = boxes_to_power_3D_binned(simu_box,k_box,400)
@@ -97,4 +103,4 @@ if __name__ == "__main__":
     power_instance = IsotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
     full_analytic = power_instance.evaluate3d(raw_k)
     full_analytic[0] = 0.
-    analytic_binned = bin_data(full_analytic,100)
+    analytic_binned = bin_data(full_analytic,100)'''
