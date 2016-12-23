@@ -19,6 +19,7 @@ def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_sn
     box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot)
     box_instance.convert_fourier_units_to_distance = True
     print(box_instance._n_samp)
+    print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
     return box_instance.skewers_realisation(), box_instance.k_box(), box_instance.mu_box()
 
 
@@ -72,7 +73,7 @@ if __name__ == "__main__":
     snap_num = int(sys.argv[2])
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
-    n_bins = 100
+    n_bins = 50
     reload_snapshot = False
     norm = True
 
@@ -86,7 +87,7 @@ if __name__ == "__main__":
     H0 = (67.11 * u.km) / (u.s * u.Mpc) #From default CLASS
     omega_m = 0.12029 + 0.022068 #omega_cdm + omega_b from default CLASS
 
-    fname = '/Users/keir/Software/lyman-alpha/python/test/P_k_z_4_default_CLASS.dat' #For pre-computed P(k)
+    fname = '/Users/keir/Software/lya/python/test/P_k_z_4_default_CLASS.dat' #For pre-computed P(k)
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -104,8 +105,8 @@ if __name__ == "__main__":
         b_DLA = 2.17 * (beta_forest ** 0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
         beta_DLA = 1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
 
-        stddev = 1. / u.Mpc
-        gamma = 1. * u.Mpc
+        stddev = 20. / u.Mpc
+        gamma = 0.05 * u.Mpc
 
         mean = 0. / u.Mpc
         gaussian_FT = np.exp((k_para - mean)**2 / (-2. * stddev**2))
@@ -124,14 +125,16 @@ if __name__ == "__main__":
 
         return mu_coeffs
 
-    multipole_max = 3
+    multipole_max = 6
 
+    #simu_box, k_box, mu_box = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,
+    #                                                                           box_size, n_samp, redshift, H0, omega_m)
+    simu_box, k_box, mu_box = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot)
     power_binned_ell = [None]*(multipole_max+1)
     true_power = [None]*(multipole_max+1)
     for multipole in range(multipole_max+1):
-        print('/n',multipole)
+        print('\n',multipole)
         #simu_box,k_box,mu_box=anisotropic_power_law_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, test_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
-        simu_box,k_box,mu_box=anisotropic_pre_computed_power_spectrum_to_boxes(fname,BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
         power_binned_ell[multipole], k_binned_ell, power_mu_sorted = boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=norm)
 
         #power_instance = PowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)

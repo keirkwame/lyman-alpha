@@ -12,7 +12,7 @@ from fourier_estimators import *
 #Null tests
 
 def test_pre_computed_power_spectra_no_interpolation_limit():
-    fname = '/Users/keir/Software/lyman-alpha/python/test/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
+    fname = '/Users/keir/Software/lya/python/test/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
     pre_computed_power_instance = PreComputedPowerSpectrum(fname)
     power_interpolated = pre_computed_power_instance.evaluate3d_isotropic(pre_computed_power_instance.k_raw)
     npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
