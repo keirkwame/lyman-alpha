@@ -28,6 +28,18 @@ def bin_1D_data(array_1D, n_bins):
 def bin_2D_data(array_2D, n_bins):
     return np.mean(arrange_data_in_3D(array_2D,n_bins), axis=-1)
 
+def get_end_index(bin_size):
+    if bin_size == 1:
+        return None
+    else:
+        return -1 * (bin_size - 1)
+
+def calculate_local_average_of_array(array_nD, bin_size): #MAKE WORK WITH UNITS!!!
+    array_nD_local_average = np.zeros(array_nD.shape + (bin_size,))
+    for i in range(bin_size):
+        array_nD_local_average[..., i] = np.roll(array_nD, -1 * i, axis=-1)
+    return np.mean(array_nD_local_average, axis=-1)[..., :get_end_index(bin_size)]
+
 def is_astropy_quantity(var):
     return hasattr(var,'value')
 

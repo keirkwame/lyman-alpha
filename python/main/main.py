@@ -15,8 +15,8 @@ from power_spectra import *
 from boxes import *
 from fourier_estimators import *
 
-def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True):
-    box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot)
+def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra'):
+    box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root)
     box_instance.convert_fourier_units_to_distance = True
     print(box_instance._n_samp)
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
@@ -73,9 +73,10 @@ if __name__ == "__main__":
     snap_num = int(sys.argv[2])
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
-    n_bins = 50
+    n_bins = 100
     reload_snapshot = False
     norm = True
+    spec_root = 'gridded_spectra_DLAs_dodged'
 
     #Test Gaussian realisations
     pow_index = -1.
@@ -105,8 +106,8 @@ if __name__ == "__main__":
         b_DLA = 2.17 * (beta_forest ** 0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
         beta_DLA = 1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
 
-        stddev = 20. / u.Mpc
-        gamma = 0.05 * u.Mpc
+        stddev = 25. / u.Mpc #20. / u.Mpc
+        gamma = 0.02 * u.Mpc #0.05 * u.Mpc
 
         mean = 0. / u.Mpc
         gaussian_FT = np.exp((k_para - mean)**2 / (-2. * stddev**2))
@@ -129,7 +130,7 @@ if __name__ == "__main__":
 
     #simu_box, k_box, mu_box = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,
     #                                                                           box_size, n_samp, redshift, H0, omega_m)
-    simu_box, k_box, mu_box = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot)
+    simu_box, k_box, mu_box = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root)
     power_binned_ell = [None]*(multipole_max+1)
     true_power = [None]*(multipole_max+1)
     for multipole in range(multipole_max+1):
