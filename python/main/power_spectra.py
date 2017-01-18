@@ -67,8 +67,8 @@ class PreComputedPowerSpectrum(PowerSpectrum):
         self.k_raw, self.power_raw = np.loadtxt(self._fname,unpack=True)
         self.k_raw = self.k_raw / u.Mpc #Convert to Astropy quantity
 
-        self.k_raw = self.k_raw[99:99999:100] #9:9999:10] #99:99999:100] #Full 100,000 is too much - 1000 is quick
-        self.power_raw = self.power_raw[99:99999:100] #9:9999:10] #99:99999:100]
+        self.k_raw = self.k_raw[9:9999:10] #9:9999:10] #99:99999:100] #Full 100,000 is too much - 1000 is quick
+        self.power_raw = self.power_raw[9:9999:10] #9:9999:10] #99:99999:100]
         #Add k = 0 - this skews interpolation
         '''self.k_raw = np.concatenate((np.array([0.]),self.k_raw))
         self.power_raw = np.concatenate((np.array([0.]), self.power_raw))'''
@@ -79,7 +79,7 @@ class PreComputedPowerSpectrum(PowerSpectrum):
     def evaluate3d_isotropic(self, k):
         k_modified = cp.deepcopy(k) #Very clunky function to deal with k = 0 mode, which cannot be interpolated
         k_modified[k == 0.] = self.k_raw[0]
-        power_interpolated = self._interpolating_func(k_modified)
+        power_interpolated = self._interpolating_func(k_modified.to(1. / u.Mpc))
         power_interpolated[k == 0.] = 0.
         return power_interpolated
 

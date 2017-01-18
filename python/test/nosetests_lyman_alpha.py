@@ -1,4 +1,5 @@
 import os
+import numpy.random as npr
 import numpy.testing as npt
 import astropy.units as u
 
@@ -30,6 +31,13 @@ def test_3D_flux_power_zeros():
     test_box = np.zeros((100,150,200))
     test_estimator = FourierEstimator3D(test_box)
     npt.assert_array_equal(test_estimator.get_flux_power_3D()[0],test_box)
+
+def test_bin_f_x_y_histogram():
+    test_size = 10000
+    n_bins_x_y = (10,20)
+    test_x_y = npr.rand(2,test_size)
+    test_f = np.ones(test_size)
+    return (bin_f_x_y_histogram(test_x_y[0],test_x_y[1],test_f,n_bins_x_y[0],n_bins_x_y[1]),np.ones(n_bins_x_y))
 
 def test_calculate_local_average_of_array():
     test_box = np.zeros((100, 150, 200))

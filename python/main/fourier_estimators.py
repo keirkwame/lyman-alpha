@@ -52,7 +52,7 @@ class FourierEstimator3D(FourierEstimator):
         self._y_step = y_step
         self._n_skewers = n_skewers
 
-    def samples_3D(self):
+    def samples_3D(self): #Needs test module!
         if self._grid == True:
             return np.arange(0,self._gauss_box.shape[0],self._x_step),np.arange(0,self._gauss_box.shape[1],self._y_step)
         elif self._grid == False:
@@ -85,7 +85,7 @@ class FourierEstimator3D(FourierEstimator):
         power_sorted,k_z_sorted,k_perp_sorted = self.get_flux_power_legendre_integrand(k_z_mod_box,k_perp_box,n_bins_z,norm)
         return bin_2D_data(power_sorted,n_bins_perp),bin_2D_data(k_z_sorted,n_bins_perp),bin_2D_data(k_perp_sorted,n_bins_perp)
 
-    def get_flux_power_3D_mod_k(self,k_box,norm=True):
+    def get_flux_power_3D_unique(self, k_box, norm=True):
         flux_power = self.get_flux_power_3D(norm)[0]
         k_unique = np.unique(k_box)
         power_unique = np.zeros_like(k_unique.value)
@@ -98,13 +98,19 @@ class FourierEstimator3D(FourierEstimator):
         k_argsort = np.argsort(k_box, axis=None)
         flux_power = self.get_flux_power_3D(norm)[0]
         if mu_box == None:
-            return sort_3D_to_1D(flux_power, k_argsort), sort_3D_to_1D(k_box, k_argsort)
+            return sort_3D_to_1D(flux_power, k_argsort)[1:], sort_3D_to_1D(k_box, k_argsort)[1:]
         else:
-            return sort_3D_to_1D(flux_power, k_argsort),sort_3D_to_1D(k_box, k_argsort),sort_3D_to_1D(mu_box, k_argsort)
+            return sort_3D_to_1D(flux_power, k_argsort)[1:],sort_3D_to_1D(k_box, k_argsort)[1:],sort_3D_to_1D(mu_box, k_argsort)[1:]
 
     def get_flux_power_3D_binned(self,k_box,n_bins,norm=True):
         power_sorted, k_sorted = self.get_flux_power_3D_sorted(k_box,norm)
-        return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins), power_sorted, k_sorted
+        return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins)
+
+    def get_flux_power_3D_two_coords_hist_binned(self,coord_box1,coord_box2,n_bins1,n_bins2,norm=True):
+        flux_power = self.get_flux_power_3D(norm)[0].flatten()[1:]
+        x = coord_box1.flatten()[1:]
+        y = coord_box2.flatten()[1:]
+        return bin_f_x_y_histogram(x,y,flux_power,n_bins1,n_bins2), bin_f_x_y_histogram(x,y,x,n_bins1,n_bins2), bin_f_x_y_histogram(x,y,y,n_bins1,n_bins2)
 
     def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True): #NEEDS TIDYING-UP!!!
         power_sorted, k_sorted, mu_sorted = self.get_flux_power_3D_sorted(k_box, norm, mu_box)

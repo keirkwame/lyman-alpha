@@ -144,20 +144,27 @@ class SimulationBox(Box):
         axis = np.ones(cofm.shape[0])
         return sa.Spectra(self._snap_num, self._snap_dir, cofm, axis, res=self._spectrum_resolution.value, reload_file=True)
 
-    def _get_optical_depth(self):
-        tau = self.spectra_instance.get_tau(self.element, self.ion, int(self.line_wavelength.value))  # SLOW if not reloading
+    def get_optical_depth(self):
+        tau = self.spectra_instance.get_tau(self.element, self.ion, int(self.line_wavelength.value)) #SLOW if not reload
         self.spectra_instance.save_file()  # Save spectra to file
         return tau
 
-    def _get_column_density(self):
+    def get_column_density(self):
         col_dens = self.spectra_instance.get_col_density(self.element, self.ion) / (u.cm * u.cm) #SLOW if not reloading
         self.spectra_instance.save_file()
         return col_dens
 
-    def skewers_realisation(self):
-        tau = self._get_optical_depth()
-        delta_flux = np.exp(-1.*tau) / np.mean(np.exp(-1.*tau)) - 1.
-        return delta_flux.reshape((self._grid_samps,self._grid_samps,-1))
+    def _get_delta_flux(self,tau,mean_flux_desired):
+        if mean_flux_desired is None:
+            return np.exp(-1.*tau) / np.mean(np.exp(-1.*tau)) - 1.
+        else:
+            tau_scaling = self.spectra_instance._get_scale(tau,mean_flux_desired)
+            return np.exp(-1.*tau*tau_scaling) / mean_flux_desired - 1.
+
+    def skewers_realisation(self,mean_flux_desired=None):
+        tau = self.get_optical_depth()
+        delta_flux = self._get_delta_flux(tau,mean_flux_desired)
+        return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
 
     def _get_skewers_with_DLAs_bool_arr_simple_threshold(self,col_dens):
         return np.max(col_dens, axis=-1) > self._col_dens_threshold
@@ -203,7 +210,7 @@ class SimulationBox(Box):
     def form_skewers_realisation_dodging_DLAs(self, col_dens_threshold = 2.e+20 / (u.cm * u.cm), dodge_dist=10.*u.kpc, savefile_root='gridded_spectra_DLAs_dodged'):
         self._col_dens_threshold = col_dens_threshold #Update if changed
         self._dodge_dist = dodge_dist
-        skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self._get_column_density())
+        skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.get_column_density())
         self._get_column_density_for_new_skewers_loop(skewers_with_DLAs_bool_arr)
         self._get_optical_depth_for_new_skewers(skewers_with_DLAs_bool_arr)
         self._save_new_skewers_realisation_dodging_DLAs(savefile_root)

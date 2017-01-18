@@ -28,6 +28,11 @@ def bin_1D_data(array_1D, n_bins):
 def bin_2D_data(array_2D, n_bins):
     return np.mean(arrange_data_in_3D(array_2D,n_bins), axis=-1)
 
+def bin_f_x_y_histogram(x,y,f,n_bins_x,n_bins_y):
+    samples_histogram = np.histogram2d(x, y, bins=[n_bins_x, n_bins_y])[0]
+    f_summed = np.histogram2d(x, y, bins=[n_bins_x, n_bins_y], weights=f)[0] #Needs units of f
+    return f_summed / samples_histogram
+
 def get_end_index(bin_size):
     if bin_size == 1:
         return None
