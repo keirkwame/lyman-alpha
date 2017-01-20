@@ -76,7 +76,7 @@ if __name__ == "__main__":
     n_bins = 100
     reload_snapshot = False
     norm = True
-    spec_root = 'gridded_spectra' #_DLAs_dodged_threshDLA_bin4sum' #17_bin4'
+    spec_root = 'gridded_spectra_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
 
     #Test Gaussian realisations
     pow_index = -1.
@@ -84,11 +84,11 @@ if __name__ == "__main__":
     pow_amp = 1.
     box_size = {'x': 35.5 * u.Mpc, 'y': 35.5 * u.Mpc, 'z': 35.5 * u.Mpc}
     n_samp = {'x': 250, 'y': 250, 'z': 117}
-    redshift = 3.993
+    redshift = 2.499
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
     omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068
 
-    fname = '/Users/keir/Software/lya/python/test/P_k_z_4_snap1.dat' #default_CLASS.dat' #For pre-computed P(k)
+    fname = '/Users/keir/Software/lya/python/test/P_k_z_2_5_snap4.dat' #default_CLASS.dat' #For pre-computed P(k)
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -100,13 +100,13 @@ if __name__ == "__main__":
         return np.array([1.*scale_dependence,0.*scale_dependence,1.*scale_dependence,0.*scale_dependence,1.*scale_dependence])
 
     def BOSS_DLA_mu_coefficients(k_para,k_perp):
-        b_forest = -0.522 #-0.522 #-0.157 #arxiv:1504.06656 - Blomqvist et al. 2015 data - z=2.3
+        b_forest = -0.157 #-0.522 #-0.157 #arxiv:1504.06656 - Blomqvist et al. 2015 data - z=2.3
         beta_forest = 1.39  #arxiv:1504.06656 - Blomqvist et al. 2015 data - z=2.3 (1.4 in sims)
-        b_DLA = 2.17 * (beta_forest ** 0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
-        beta_DLA = 1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
+        b_DLA = -0.03 #BOSS 2017 #2.17*(beta_forest**0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
+        beta_DLA = 0.43 #1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
 
-        stddev = 10. / u.Mpc #20. / u.Mpc
-        gamma = 0.1 * u.Mpc #0.05 * u.Mpc
+        stddev = 10. / u.Mpc #10. / u.Mpc
+        gamma = 0.1 * u.Mpc #0.1 * u.Mpc
 
         mean = 0. / u.Mpc
         gaussian_FT = np.exp((k_para - mean)**2 / (-2. * stddev**2))
@@ -129,7 +129,7 @@ if __name__ == "__main__":
 
     #simu_box, k_box, mu_box = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,
     #                                                                           box_size, n_samp, redshift, H0, omega_m)
-    mean_flux = None #0.36000591326127357 #None
+    mean_flux = 0.75232943916324291 #0.36000591326127357 #None
     simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
     '''power_binned_ell = [None]*(multipole_max+1)
     true_power = [None]*(multipole_max+1)
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     n_bins_k = 25
     n_bins_mu = 7
     fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+    power_binned_k_mu2, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     power_instance = PreComputedPowerSpectrum(fname)
     power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
