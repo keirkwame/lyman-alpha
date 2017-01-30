@@ -15,24 +15,25 @@ from utils import *
 
 class FourierEstimator(object): #Need object dependence so sub-classes can inherit __init__
     """Class to estimate power spectra from a box of fluctuations"""
-    def __init__(self,gauss_box):
+    def __init__(self,gauss_box,second_box):
         self._gauss_box = gauss_box
+        self._second_box = second_box
 
 
 class FourierEstimator1D(FourierEstimator):
     """Sub-class to calculate 1D power spectra"""
-    def __init__(self,gauss_box,n_skewers):
-        super(FourierEstimator1D, self).__init__(gauss_box)
+    def __init__(self,gauss_box,n_skewers,second_box=None):
+        super(FourierEstimator1D, self).__init__(gauss_box,second_box)
         self._nskewers = n_skewers
 
     def samples_1D(self):
         return rd.sample(np.arange(self._gauss_box.shape[0] * self._gauss_box.shape[1]), self._nskewers)
 
     def skewers_1D(self):
-        return self._gauss_box.reshape((self._gauss_box.shape[0] * self._gauss_box.shape[1], -1))[self.samples_1D(), :]
+        return self._gauss_box.reshape((self._gauss_box.shape[0] * self._gauss_box.shape[1], -1)) #[self.samples_1D(), :]
 
     #COURTESY OF SIMEON BIRD
-    def get_flux_power_1D(self):
+    def get_flux_power_1D(self): #MODIFY FOR SECOND BOX
         delta_flux = self.skewers_1D()
 
         df_hat = np.fft.fft(delta_flux, axis=1)
@@ -45,8 +46,8 @@ class FourierEstimator1D(FourierEstimator):
 
 class FourierEstimator3D(FourierEstimator):
     """Sub-class to calculate 3D power spectra"""
-    def __init__(self,gauss_box,grid=True,x_step=1,y_step=1,n_skewers=0): #Probably want to init with k_box, etc.
-        super(FourierEstimator3D, self).__init__(gauss_box)
+    def __init__(self,gauss_box,second_box=None,grid=True,x_step=1,y_step=1,n_skewers=0): #Probably want to init with k_box, etc.
+        super(FourierEstimator3D, self).__init__(gauss_box,second_box)
         self._grid = grid
         self._x_step = x_step
         self._y_step = y_step
@@ -75,9 +76,13 @@ class FourierEstimator3D(FourierEstimator):
         if norm == False:
             norm_fac = 1.
         elif norm == True:
-            norm_fac = flux_real.size #CHECK THIS!!!
+            norm_fac = 1. #flux_real.size #CHECK THIS!!!
         df_hat = np.fft.fftn(flux_real) / norm_fac
-        flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
+        if self._second_box is None:
+            flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
+        else:
+            df_hat_2 = np.fft.fftn(self._second_box) / norm_fac
+            flux_power = (df_hat.real * df_hat_2.real) + (df_hat.imag * df_hat_2.imag)
         return flux_power, df_hat
 
     def get_flux_power_3D_cylindrical_coords(self,k_z_mod_box,k_perp_box,n_bins_z,n_bins_perp,norm=True):

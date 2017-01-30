@@ -52,7 +52,7 @@ class PowerLawPowerSpectrum(PowerSpectrum):
         self._pow_amp = pow_amp
 
     def evaluate3d_isotropic(self, k):
-        Pk = self._pow_amp * (k / self._pow_pivot) ** self._pow_index
+        Pk = self._pow_amp * ((k / self._pow_pivot) ** self._pow_index)
         if is_astropy_quantity(k):
             return Pk
         else:

@@ -56,3 +56,37 @@ def spherical_to_cylindrical_coordinates(k,mu):
     k_para = k * mu
     k_perp = k * np.sqrt(1. - mu**2)
     return k_para, k_perp
+
+#http://scipython.com/book/chapter-8-scipy/examples/the-voigt-profile/
+def voigt(x, sigma, gamma, x0):
+    """
+    Return the Voigt line shape at x with Lorentzian component HWHM gamma
+    and Gaussian component std dev sigma.
+
+    """
+
+    return np.real(sps.wofz((x.value - x0.value + 1j*gamma.value)/sigma.value/np.sqrt(2))) / sigma /np.sqrt(2*np.pi)
+
+def voigt_amplified(x, sigma, gamma, amp, x0):
+    return (amp * voigt(x, sigma, gamma, x0)) / voigt(x0, sigma, gamma, x0)
+
+def _set_real_values_in_hermitian_box(box,x,y,z):
+    box[0, 0, 0] = np.real(box[0, 0, 0]) * mh.sqrt(2.)  # Force mean mode to be real - PROBS NEED TO * SQRT(2)
+    if x % 2 == 0:
+        box[int(x / 2), :, :] = np.real(box[int(x / 2), :, :]) * mh.sqrt(2.)  # Force Nyquist frequencies to be real
+    if y % 2 == 0:
+        box[:, int(y / 2), :] = np.real(box[:, int(y / 2), :]) * mh.sqrt(2.)
+    if z % 2 == 0:
+        box[:, :, int(z / 2)] = np.real(box[:, :, int(z / 2)]) * mh.sqrt(2.)
+    return box
+
+def make_box_hermitian(box):
+    if is_astropy_quantity(box):
+        box = box.value
+    x,y,z = box.shape
+    box = _set_real_values_in_hermitian_box(box,x,y,z) #SLOW if dimensionless quantity
+    for i in range(int(x//2 + 1)): #Only need to loop over half the samples
+        for j in range(y):
+            for k in range(z):
+                box[i,j,k] = np.conj(box[-i,-j,-k])
+    return box

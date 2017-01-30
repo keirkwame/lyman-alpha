@@ -37,14 +37,14 @@ def isotropic_power_law_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, b
 def anisotropic_power_law_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, mu_coefficients, box_size, n_samp, redshift, H0, omega_m):
     box_instance = _get_gaussian_box_instance(box_size, n_samp, redshift, H0, omega_m)
     print(np.max(box_instance.k_i('z')))
-    return box_instance.anisotropic_power_law_gauss_realisation(pow_index,pow_pivot,pow_amp,mu_coefficients),box_instance.k_box(),box_instance.mu_box()
+    return box_instance.anisotropic_power_law_gauss_realisation(pow_index,pow_pivot,pow_amp,mu_coefficients),box_instance.k_box(),box_instance.mu_box(),box_instance
 
 def anisotropic_pre_computed_power_spectrum_to_boxes(fname,mu_coeffs,box_size,n_samp,redshift,H0,omega_m):
     box_instance = _get_gaussian_box_instance(box_size, n_samp, redshift, H0, omega_m)
     k_box = box_instance.k_box()
     mu_box = box_instance.mu_box()
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
-    return box_instance.anisotropic_pre_computed_gauss_realisation(fname,mu_coeffs),k_box,mu_box
+    return box_instance.anisotropic_pre_computed_gauss_realisation(fname,mu_coeffs),k_box,mu_box, box_instance
 
 
 #Get Fourier estimates of power spectra
@@ -76,10 +76,10 @@ if __name__ == "__main__":
     n_bins = 100
     reload_snapshot = False
     norm = True
-    spec_root = 'gridded_spectra_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
+    spec_root = 'gridded_spectra' #_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
 
     #Test Gaussian realisations
-    pow_index = -1.
+    pow_index = 0.
     pow_pivot = 1. / u.Mpc
     pow_amp = 1.
     box_size = {'x': 35.5 * u.Mpc, 'y': 35.5 * u.Mpc, 'z': 35.5 * u.Mpc}
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
     omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068
 
-    fname = '/Users/keir/Software/lya/python/test/P_k_z_2_5_snap4.dat' #default_CLASS.dat' #For pre-computed P(k)
+    fname = '/Users/keir/Software/lya/python/test/P_k_z_2_5_snap4.dat' #P_k_n_minus_1.dat' #default_CLASS.dat'
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -102,8 +102,8 @@ if __name__ == "__main__":
     def BOSS_DLA_mu_coefficients(k_para,k_perp):
         b_forest = -0.157 #-0.522 #-0.157 #arxiv:1504.06656 - Blomqvist et al. 2015 data - z=2.3
         beta_forest = 1.39  #arxiv:1504.06656 - Blomqvist et al. 2015 data - z=2.3 (1.4 in sims)
-        b_DLA = -0.03 #BOSS 2017 #2.17*(beta_forest**0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
-        beta_DLA = 0.43 #1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
+        b_DLA = 0. #-0.03 #BOSS 2017 #2.17*(beta_forest**0.22) #(2.33) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
+        beta_DLA = 0. #0.43 #1. / b_DLA #(0.43) arxiv:1209.4596 - Font-Ribera et al. 2012 data - z=?
 
         stddev = 10. / u.Mpc #10. / u.Mpc
         gamma = 0.1 * u.Mpc #0.1 * u.Mpc
@@ -125,35 +125,42 @@ if __name__ == "__main__":
 
         return mu_coeffs
 
-    multipole_max = 6
+    #Generate boxes
+    (simu_box,input_k), k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
+    #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
+    mean_flux = None #0.75232943916324291 #0.36000591326127357 #None
+    #simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
 
-    #simu_box, k_box, mu_box = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,
-    #                                                                           box_size, n_samp, redshift, H0, omega_m)
-    mean_flux = 0.75232943916324291 #0.36000591326127357 #None
-    simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
-    '''power_binned_ell = [None]*(multipole_max+1)
-    true_power = [None]*(multipole_max+1)
-    for multipole in range(multipole_max+1):
-        print('\n',multipole)
-        #simu_box,k_box,mu_box=anisotropic_power_law_power_spectrum_to_boxes(pow_index, pow_pivot, pow_amp, test_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
-        power_binned_ell[multipole], k_binned_ell, power_mu_sorted = boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=norm)
+    #Add Voigt profiles
+    n_voigt = 6250
+    sigma = 100.*(u.km/u.s)
+    gamma = 100.*(u.km/u.s)
+    amp_voigt = 3.e-2
+    wrap_around = 1
+    voigt_box = box_instance.add_voigt_profiles(simu_box,n_voigt,sigma,gamma,amp_voigt,wrap_around=wrap_around)[0]
+    voigt_only = voigt_box - simu_box
 
-        #power_instance = PowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
-        power_instance = PreComputedPowerSpectrum(fname)
-        power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
-        true_power[multipole] = power_instance.evaluate_multipole(multipole, k_binned_ell)
-    isotropic_power_component = power_instance.evaluate3d_isotropic(k_binned_ell)'''
-
-    power_binned, k_binned = boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=norm)
-
+    #Estimate power spectra
     n_bins_k = 25
     n_bins_mu = 7
     fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu2, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
-    power_instance = PreComputedPowerSpectrum(fname)
+    voigt_instance = FourierEstimator3D(voigt_box)
+    voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+
+    voigt_only_instance = FourierEstimator3D(voigt_only)
+    voigt_only_power, k2, mu2 = voigt_only_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+
+    cross_instance = FourierEstimator3D(simu_box,second_box=voigt_only)
+    cross_power, k3, mu3 = cross_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+
+    #Calculate model power spectra
+    power_instance = PreComputedPowerSpectrum(fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
     power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
     raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))
     raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
-    power_binned_model = bin_f_x_y_histogram(k_box[1:].flatten(),np.absolute(mu_box)[1:].flatten(),raw_model_power[1:].flatten(),n_bins_k,n_bins_mu)
-    power_binned_isotropic_model = bin_f_x_y_histogram(k_box[1:].flatten(),np.absolute(mu_box)[1:].flatten(),raw_model_isotropic_power[1:].flatten(),n_bins_k,n_bins_mu)
+    power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
+    power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
+
+    colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2

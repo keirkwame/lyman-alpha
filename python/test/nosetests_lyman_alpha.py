@@ -27,10 +27,36 @@ def test_anisotropic_power_law_power_spectra_isotropic_limit():
     anisotropic_power_instance.set_anisotropic_functional_form(lambda a, b:np.array([0., 0., 0., 0., 1.]))
     npt.assert_allclose(anisotropic_power_instance.evaluate_multipole(0,test_k),isotropic_power_instance.evaluate3d_isotropic(test_k))
 
+def test_choose_location_voigt_profiles_in_sky():
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_gaussian_box = GaussianBox(test_box_size,{'x': 250, 'y': 250, 'z': 117},3.993,(70.4*u.km)/(u.s*u.Mpc),0.2726)
+    test_gaussian_box._num_voigt = 10000
+    test_gaussian_box._choose_location_voigt_profiles_in_sky()
+    assert np.sum(test_gaussian_box._voigt_profile_skewers_bool_arr) == 10000
+
+def test_form_voigt_profile_box(): #SOME REPETITION OF TEST ABOVE!!!
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_gaussian_box = GaussianBox(test_box_size, {'x': 250, 'y': 250, 'z': 117}, 3.993, (70.4 * u.km) / (u.s * u.Mpc),0.2726)
+    test_gaussian_box._num_voigt = 10000
+    test_gaussian_box._choose_location_voigt_profiles_in_sky()
+    no_voigt_profile_bool_arr = np.logical_not(test_gaussian_box._voigt_profile_skewers_bool_arr)
+    test_zeros = np.zeros((test_gaussian_box.nskewers - 10000,117))
+    npt.assert_array_equal(test_gaussian_box._form_voigt_profile_box(1.*(u.km/u.s),1.*(u.km/u.s),1.,wrap_around=10)[0][no_voigt_profile_bool_arr],test_zeros)
+
 def test_3D_flux_power_zeros():
     test_box = np.zeros((100,150,200))
     test_estimator = FourierEstimator3D(test_box)
     npt.assert_array_equal(test_estimator.get_flux_power_3D()[0],test_box)
+
+def test_cross_power_spectrum():
+    test_box_1 = npr.rand(100, 150, 200)
+    test_box_2 = npr.rand(100, 150, 200)
+    test_estimator_1 = FourierEstimator3D(test_box_1)
+    test_estimator_2 = FourierEstimator3D(test_box_2)
+    test_estimator_cross = FourierEstimator3D(test_box_1,second_box=test_box_2)
+    test_estimator_total = FourierEstimator3D(test_box_1 + test_box_2)
+    total_power = test_estimator_1.get_flux_power_3D()[0] + test_estimator_2.get_flux_power_3D()[0] + (2. * test_estimator_cross.get_flux_power_3D()[0])
+    npt.assert_allclose(total_power,test_estimator_total.get_flux_power_3D()[0])
 
 def test_bin_f_x_y_histogram():
     test_size = 10000
@@ -43,6 +69,12 @@ def test_calculate_local_average_of_array():
     test_box = np.zeros((100, 150, 200))
     bin_size = 5
     npt.assert_array_equal(calculate_local_average_of_array(test_box,bin_size),test_box[...,:get_end_index(bin_size)])
+
+def test_make_box_hermitian():
+    test_box = npr.rand(10,11,12)
+    hermitian_box = make_box_hermitian(test_box)
+    real_box = np.fft.ifftn(hermitian_box,s=(10,11,12),axes=(0,1,2))
+    npt.assert_allclose(real_box.imag,np.zeros_like(real_box.imag),atol=1.e-16)
 
 
 #Pipeline tests - will set up tests to test all combinations of boxes and Fourier estimators

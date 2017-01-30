@@ -15,10 +15,12 @@ from utils import *
 
 class Box(object):
     """Class to generate a box of fluctuations"""
-    def __init__(self,redshift,H0,omega_m):
+    def __init__(self,redshift,H0,omega_m,nskewers):
         self._redshift = redshift
         self._H0 = H0
         self._omega_m = omega_m
+        self.nskewers = nskewers
+        self.scale_factor = 1. / (1. + self._redshift)
         self.convert_fourier_units_to_distance = False
 
     def k_i(self,i):
@@ -26,7 +28,10 @@ class Box(object):
             box_units = self.voxel_velocities[i]
         else:
             box_units = self.voxel_lens[i]
-        return np.fft.fftfreq(self._n_samp[i], d=box_units)
+        if i == 'z':
+            return np.fft.fftfreq(self._n_samp[i], d=box_units)
+        else:
+            return np.fft.fftfreq(self._n_samp[i], d=box_units)
 
     def k_z_mod_box(self): #Generalise to any k_i
         x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]
@@ -59,20 +64,25 @@ class Box(object):
 class GaussianBox(Box):
     """Sub-class to generate a box of fluctuations from a Gaussian random field"""
     def __init__(self,x_max,n_samp,redshift,H0,omega_m):
-        self._x_max = x_max #Tuples for 3 dimensions
+        self._x_max = x_max #Tuples for 3 dimensions - comoving in Mpc
         self._n_samp = n_samp
-        super(GaussianBox, self).__init__(redshift,H0,omega_m)
+        nskewers = self._n_samp['x'] * self._n_samp['y']
+        super(GaussianBox, self).__init__(redshift,H0,omega_m,nskewers)
 
         self.voxel_lens = {}
         self.voxel_velocities = {}
         for i in ['x','y','z']:
             self.voxel_lens[i] = self._x_max[i] / (self._n_samp[i] - 1)
-            self.voxel_velocities[i] = self.voxel_lens[i] * self.hubble_z()
+            self.voxel_velocities[i] = self.voxel_lens[i] * self.hubble_z() * self.scale_factor
+
+        self._num_voigt = 0
+        self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
 
     def _gauss_realisation(self, power_evaluated, k_box): #Really want Hermitian Fourier modes
         gauss_k=np.sqrt(0.5*power_evaluated)*(npr.standard_normal(size=power_evaluated.shape)+npr.standard_normal(size=power_evaluated.shape)*1.j)
         gauss_k[k_box == 0.] = 0. #Zeroing the mean
-        return np.fft.ifftn(gauss_k, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2))
+        gauss_k_hermitian = make_box_hermitian(gauss_k)
+        return np.fft.ifftn(gauss_k_hermitian, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2)) ,gauss_k
 
     def isotropic_power_law_gauss_realisation(self,pow_index,pow_pivot,pow_amp):
         box_spectra = PowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
@@ -102,6 +112,29 @@ class GaussianBox(Box):
     def anisotropic_CAMB_gauss_realisation(self):
         return 0
 
+    def _choose_location_voigt_profiles_in_sky(self):
+        self._voigt_profile_skewers_index_arr = npr.choice(self.nskewers, self._num_voigt, replace=True) #] = True #Repeating
+
+    def _evaluate_voigt_profiles(self,z_values,z0_values,sigma,gamma,amp,wrap_around):
+        voigt_profile_box = np.zeros((self.nskewers, self._n_samp['z']))
+        voigt_profiles_unwrapped = voigt_amplified(z_values[np.newaxis, :], sigma, gamma, amp, z0_values[:, np.newaxis])
+        voigt_profiles_wrapped = np.sum(voigt_profiles_unwrapped.reshape(voigt_profiles_unwrapped.shape[0], 1 + (2 * wrap_around),-1), axis=-2)
+        for i in self._voigt_profile_skewers_index_arr: #Loop necessary for fully random allocation
+            voigt_profile_box[self._voigt_profile_skewers_index_arr] += voigt_profiles_wrapped
+        return voigt_profile_box, voigt_profiles_unwrapped
+
+    def _form_voigt_profile_box(self, sigma, gamma, amp, wrap_around):
+        z_values = np.arange(start = (-1*wrap_around)*self._n_samp['z'], stop = (1+wrap_around)*self._n_samp['z']) * self.voxel_velocities['z']
+        print(z_values)
+        z0_values = npr.choice(self._n_samp['z'], self._num_voigt, replace=True) * self.voxel_velocities['z']  # km / s
+        return self._evaluate_voigt_profiles(z_values,z0_values,sigma,gamma,amp,wrap_around)
+
+    def add_voigt_profiles(self,gauss_box,num_voigt,sigma,gamma,amp,wrap_around=0): #Use velocity units
+        self._num_voigt = num_voigt
+        self._choose_location_voigt_profiles_in_sky()
+        voigt_profile_box,voigt_unwrapped = self._form_voigt_profile_box(sigma, gamma, amp, wrap_around)
+        return gauss_box - (voigt_profile_box.reshape(gauss_box.shape) * (1. + 0.j)),voigt_unwrapped
+
 
 class SimulationBox(Box):
     """Sub-class to generate a box of Lyman-alpha spectra drawn from Simeon's simulations"""
@@ -109,6 +142,7 @@ class SimulationBox(Box):
         self._n_samp = {}
         self._n_samp['x'] = grid_samps
         self._n_samp['y'] = grid_samps
+        nskewers = self._n_samp['x'] * self._n_samp['y']
 
         self.voxel_lens = {}
         self.voxel_velocities = {}
@@ -128,14 +162,15 @@ class SimulationBox(Box):
 
         self.spectra_instance = gs.GriddedSpectra(self._snap_num,self._snap_dir,nspec=self._grid_samps,res=self._spectrum_resolution.value,savefile=self.spectra_savefile,reload_file=self._reload_snapshot)
         self._n_samp['z'] = int(self.spectra_instance.vmax / self.spectra_instance.dvbin)
-        super(SimulationBox, self).__init__(self.spectra_instance.red, (self.spectra_instance.hubble * 100. * u.km) / (u.s * u.Mpc), self.spectra_instance.OmegaM)
+        H0 = (self.spectra_instance.hubble * 100. * u.km) / (u.s * u.Mpc)
+        super(SimulationBox, self).__init__(self.spectra_instance.red, H0, self.spectra_instance.OmegaM, nskewers)
         self.voxel_velocities['x'] = (self.spectra_instance.vmax / self._n_samp['x']) * (u.km / u.s)
         self.voxel_velocities['y'] = (self.spectra_instance.vmax / self._n_samp['y']) * (u.km / u.s)
         self.voxel_velocities['z'] = self.spectra_instance.dvbin * (u.km / u.s)
         print("Size of voxels in velocity units =", self.voxel_velocities)
         for i in ['x','y','z']:
-            #self.voxel_lens[i] = self.voxel_velocities[i] / self.hubble_z()
-            self.voxel_lens[i] = (self.spectra_instance.box / (self._n_samp[i] * self.spectra_instance.hubble)) * u.kpc
+            #Comoving units
+            self.voxel_lens[i] = (self.spectra_instance.box / (self.spectra_instance.hubble * self._n_samp[i])) * u.kpc
 
         self._col_dens_threshold = 2.e+20 / (u.cm * u.cm) #Default values
         self._dodge_dist = 10.*u.kpc
