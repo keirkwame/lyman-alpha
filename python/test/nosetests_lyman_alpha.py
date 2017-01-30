@@ -14,7 +14,7 @@ from utils import *
 #Null tests
 
 def test_pre_computed_power_spectra_no_interpolation_limit():
-    fname = '/Users/keir/Software/lya/python/test/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
+    fname = '/Users/keir/Software/lyman-alpha/python/test/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
     pre_computed_power_instance = PreComputedPowerSpectrum(fname)
     power_interpolated = pre_computed_power_instance.evaluate3d_isotropic(pre_computed_power_instance.k_raw)
     npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
@@ -32,7 +32,7 @@ def test_choose_location_voigt_profiles_in_sky():
     test_gaussian_box = GaussianBox(test_box_size,{'x': 250, 'y': 250, 'z': 117},3.993,(70.4*u.km)/(u.s*u.Mpc),0.2726)
     test_gaussian_box._num_voigt = 10000
     test_gaussian_box._choose_location_voigt_profiles_in_sky()
-    assert np.sum(test_gaussian_box._voigt_profile_skewers_bool_arr) == 10000
+    assert test_gaussian_box._voigt_profile_skewers_index_arr.shape[0] == 10000 #np.sum(test_gaussian_box._voigt_profile_skewers_bool_arr) == 10000
 
 def test_form_voigt_profile_box(): #SOME REPETITION OF TEST ABOVE!!!
     test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
@@ -40,7 +40,7 @@ def test_form_voigt_profile_box(): #SOME REPETITION OF TEST ABOVE!!!
     test_gaussian_box._num_voigt = 10000
     test_gaussian_box._choose_location_voigt_profiles_in_sky()
     no_voigt_profile_bool_arr = np.logical_not(test_gaussian_box._voigt_profile_skewers_bool_arr)
-    test_zeros = np.zeros((test_gaussian_box.nskewers - 10000,117))
+    test_zeros = np.zeros((test_gaussian_box.num_clean_skewers,117))
     npt.assert_array_equal(test_gaussian_box._form_voigt_profile_box(1.*(u.km/u.s),1.*(u.km/u.s),1.,wrap_around=10)[0][no_voigt_profile_bool_arr],test_zeros)
 
 def test_3D_flux_power_zeros():

@@ -76,7 +76,9 @@ class GaussianBox(Box):
             self.voxel_velocities[i] = self.voxel_lens[i] * self.hubble_z() * self.scale_factor
 
         self._num_voigt = 0
-        self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
+        self.num_clean_skewers = self.nskewers
+        self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers) #, dtype=bool)  # Array of Falses
+        self._voigt_profile_skewers_bool_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
 
     def _gauss_realisation(self, power_evaluated, k_box): #Really want Hermitian Fourier modes
         gauss_k=np.sqrt(0.5*power_evaluated)*(npr.standard_normal(size=power_evaluated.shape)+npr.standard_normal(size=power_evaluated.shape)*1.j)
@@ -114,13 +116,17 @@ class GaussianBox(Box):
 
     def _choose_location_voigt_profiles_in_sky(self):
         self._voigt_profile_skewers_index_arr = npr.choice(self.nskewers, self._num_voigt, replace=True) #] = True #Repeating
+        self._voigt_profile_skewers_bool_arr[self._voigt_profile_skewers_index_arr] = True
+        self.num_clean_skewers = self.nskewers - np.sum(self._voigt_profile_skewers_bool_arr)
 
     def _evaluate_voigt_profiles(self,z_values,z0_values,sigma,gamma,amp,wrap_around):
         voigt_profile_box = np.zeros((self.nskewers, self._n_samp['z']))
         voigt_profiles_unwrapped = voigt_amplified(z_values[np.newaxis, :], sigma, gamma, amp, z0_values[:, np.newaxis])
         voigt_profiles_wrapped = np.sum(voigt_profiles_unwrapped.reshape(voigt_profiles_unwrapped.shape[0], 1 + (2 * wrap_around),-1), axis=-2)
-        for i in self._voigt_profile_skewers_index_arr: #Loop necessary for fully random allocation
-            voigt_profile_box[self._voigt_profile_skewers_index_arr] += voigt_profiles_wrapped
+        j = 0
+        for i in self._voigt_profile_skewers_index_arr: #Loop necessary for fully random allocation - MAKE QUICKER!!!
+            voigt_profile_box[i] += voigt_profiles_wrapped[j]
+            j+=1
         return voigt_profile_box, voigt_profiles_unwrapped
 
     def _form_voigt_profile_box(self, sigma, gamma, amp, wrap_around):
