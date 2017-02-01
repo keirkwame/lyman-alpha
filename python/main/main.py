@@ -88,7 +88,7 @@ if __name__ == "__main__":
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
     omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068
 
-    fname = '/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_5_snap4.dat' #P_k_n_minus_1.dat' #default_CLASS.dat'
+    fname = '/Users/keir/Software/lya/python/test/P_k_z_2_5_snap4.dat' #P_k_n_minus_1.dat' #default_CLASS.dat'
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -132,10 +132,10 @@ if __name__ == "__main__":
     #simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
 
     #Add Voigt profiles
-    n_voigt = 6250
-    sigma = 500.*(u.km/u.s)
-    gamma = 500.*(u.km/u.s)
-    amp_voigt = 6.e+0 #-4
+    n_voigt = 6250 #1250
+    sigma = 10.*(u.km/u.s)
+    gamma = 10.*(u.km/u.s)
+    amp_voigt = 6.e-4
     wrap_around = 10
     voigt_box = box_instance.add_voigt_profiles(simu_box,n_voigt,sigma,gamma,amp_voigt,wrap_around=wrap_around)[0]
     voigt_only = voigt_box - simu_box
