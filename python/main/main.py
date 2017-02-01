@@ -16,8 +16,8 @@ from power_spectra import *
 from boxes import *
 from fourier_estimators import *
 
-def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra',mean_flux_desired=None):
-    box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root)
+def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra',spectra_savedir=None,mean_flux_desired=None):
+    box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root,spectra_savedir=spectra_savedir)
     box_instance.convert_fourier_units_to_distance = True
     print(box_instance._n_samp)
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
@@ -67,11 +67,12 @@ def boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=True
 
 
 if __name__ == "__main__":
-    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}; Full path to fiducial cosmology datafile"""
+    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}; Directory to save spectra; Full path to fiducial cosmology datafile"""
     snap_dir = sys.argv[1]
     snap_num = int(sys.argv[2]) #64
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
+    spectra_savedir = sys.argv[5] #None
     reload_snapshot = True
     spec_root = 'gridded_spectra' #_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
     mean_flux = None  # 0.75232943916324291 #0.36000591326127357 #None
@@ -88,7 +89,7 @@ if __name__ == "__main__":
     redshift = 2.499
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
     omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068'''
-    #fiducial_cosmology_fname = sys.argv[5]
+    #fiducial_cosmology_fname = sys.argv[6]
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -128,7 +129,7 @@ if __name__ == "__main__":
     #Generate boxes
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
+    simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
 
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
@@ -140,8 +141,8 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    '''fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)'''
+    fourier_instance = FourierEstimator3D(simu_box)
+    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
@@ -159,6 +160,6 @@ if __name__ == "__main__":
     raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
     power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
     power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
+    '''
 
     colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2
-    '''

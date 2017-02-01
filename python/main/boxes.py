@@ -144,7 +144,7 @@ class GaussianBox(Box):
 
 class SimulationBox(Box):
     """Sub-class to generate a box of Lyman-alpha spectra drawn from Simeon's simulations"""
-    def __init__(self,snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spectra_savefile_root='gridded_spectra'):
+    def __init__(self,snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spectra_savefile_root='gridded_spectra',spectra_savedir=None):
         self._n_samp = {}
         self._n_samp['x'] = grid_samps
         self._n_samp['y'] = grid_samps
@@ -160,13 +160,14 @@ class SimulationBox(Box):
         self._reload_snapshot = reload_snapshot
         self._spectra_savefile_root = spectra_savefile_root
 
+        self.spectra_savedir = spectra_savedir
         self.spectra_savefile = '%s_%i_%i.hdf5'%(self._spectra_savefile_root,self._grid_samps,self._spectrum_resolution.value)
 
         self.element = 'H'
         self.ion = 1
         self.line_wavelength = 1215 * u.angstrom
 
-        self.spectra_instance = gs.GriddedSpectra(self._snap_num,self._snap_dir,nspec=self._grid_samps,res=self._spectrum_resolution.value,savefile=self.spectra_savefile,reload_file=self._reload_snapshot)
+        self.spectra_instance = gs.GriddedSpectra(self._snap_num,self._snap_dir,nspec=self._grid_samps,res=self._spectrum_resolution.value,savefile=self.spectra_savefile,savedir=self.spectra_savedir,reload_file=self._reload_snapshot)
         self._n_samp['z'] = int(self.spectra_instance.vmax / self.spectra_instance.dvbin)
         H0 = (self.spectra_instance.hubble * 100. * u.km) / (u.s * u.Mpc)
         super(SimulationBox, self).__init__(self.spectra_instance.red, H0, self.spectra_instance.OmegaM, nskewers)
