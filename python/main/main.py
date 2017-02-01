@@ -8,6 +8,7 @@ import astropy.units as u
 import spectra as sa
 import griddedspectra as gs
 import randspectra as rs
+import os
 import sys
 
 from utils import *
