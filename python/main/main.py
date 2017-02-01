@@ -66,29 +66,28 @@ def boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=True
 
 
 if __name__ == "__main__":
-    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}"""
+    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}; Full path to fiducial cosmology datafile"""
     snap_dir = sys.argv[1]
-    #snap_dir = '/Users/keir/Documents/lyman_alpha/simulations/illustris_Cosmo7_V6'
-    #snap_dir = '/home/keir/Data/illustris_Cosmo7_V6'
-    snap_num = int(sys.argv[2])
+    snap_num = int(sys.argv[2]) #64
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
-    n_bins = 100
-    reload_snapshot = False
-    norm = True
+    reload_snapshot = True
     spec_root = 'gridded_spectra' #_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
+    mean_flux = None  # 0.75232943916324291 #0.36000591326127357 #None
+    n_bins_k = 25
+    n_bins_mu = 7
+    norm = True
 
     #Test Gaussian realisations
-    pow_index = 0.
+    '''pow_index = 0.
     pow_pivot = 1. / u.Mpc
     pow_amp = 1.
     box_size = {'x': 35.5 * u.Mpc, 'y': 35.5 * u.Mpc, 'z': 35.5 * u.Mpc}
     n_samp = {'x': 250, 'y': 250, 'z': 117}
     redshift = 2.499
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
-    omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068
-
-    fname = '/Users/keir/Software/lya/python/test/P_k_z_2_5_snap4.dat' #P_k_n_minus_1.dat' #default_CLASS.dat'
+    omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068'''
+    #fiducial_cosmology_fname = sys.argv[5]
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -126,27 +125,24 @@ if __name__ == "__main__":
         return mu_coeffs
 
     #Generate boxes
-    (simu_box,input_k), k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fname, BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
+    #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    mean_flux = None #0.75232943916324291 #0.36000591326127357 #None
-    #simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
+    simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,mean_flux_desired=mean_flux)
 
     #Add Voigt profiles
-    n_voigt = 6250 #1250
+    '''n_voigt = 6250 #1250
     sigma = 10.*(u.km/u.s)
     gamma = 10.*(u.km/u.s)
     amp_voigt = 6.e-4
     wrap_around = 10
     voigt_box = box_instance.add_voigt_profiles(simu_box,n_voigt,sigma,gamma,amp_voigt,wrap_around=wrap_around)[0]
-    voigt_only = voigt_box - simu_box
+    voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    n_bins_k = 25
-    n_bins_mu = 7
-    fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+    '''fourier_instance = FourierEstimator3D(simu_box)
+    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)'''
 
-    voigt_instance = FourierEstimator3D(voigt_box)
+    '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     voigt_only_instance = FourierEstimator3D(voigt_only)
@@ -156,7 +152,7 @@ if __name__ == "__main__":
     cross_power, k3, mu3 = cross_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     #Calculate model power spectra
-    power_instance = PreComputedPowerSpectrum(fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
+    power_instance = PreComputedPowerSpectrum(fiducial_cosmology_fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
     power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
     raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))
     raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
@@ -164,3 +160,4 @@ if __name__ == "__main__":
     power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
 
     colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2
+    '''
