@@ -29,9 +29,9 @@ class Box(object):
         else:
             box_units = self.voxel_lens[i]
         if i == 'z':
-            return np.fft.fftfreq(self._n_samp[i], d=box_units)
+            return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi #2 * pi for "cosmologist's k"
         else:
-            return np.fft.fftfreq(self._n_samp[i], d=box_units)
+            return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi
 
     def k_z_mod_box(self): #Generalise to any k_i
         x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]

@@ -67,17 +67,18 @@ def boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=True
 
 
 if __name__ == "__main__":
-    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1}; Directory to save spectra; Full path to fiducial cosmology datafile"""
+    """Input arguments: Snapshot directory path; Snapshot number; grid_samps; Resolution of spectrum in km s^{-1};
+    Directory to save spectra; Full path to fiducial cosmology datafile"""
     snap_dir = sys.argv[1]
     snap_num = int(sys.argv[2]) #64
     grid_samps = int(sys.argv[3])
     spectrum_resolution = float(sys.argv[4])*(u.km / u.s)
     spectra_savedir = sys.argv[5] #None
-    reload_snapshot = True
+    reload_snapshot = False
     spec_root = 'gridded_spectra' #_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
     mean_flux = None  # 0.75232943916324291 #0.36000591326127357 #None
-    n_bins_k = 25
-    n_bins_mu = 7
+    n_bins_k = 1000
+    n_bins_mu = 4
     norm = True
 
     #Test Gaussian realisations
@@ -89,7 +90,7 @@ if __name__ == "__main__":
     redshift = 2.499
     H0 = (70.4 * u.km) / (u.s * u.Mpc) #From default CLASS - 67.11
     omega_m = 0.2726 #omega_cdm + omega_b from default CLASS - 0.12029 + 0.022068'''
-    #fiducial_cosmology_fname = sys.argv[6]
+    fiducial_cosmology_fname = sys.argv[6]
 
     #Anisotropic corrections
     #mu_coefficients = (1,0,1,0,1)
@@ -142,6 +143,7 @@ if __name__ == "__main__":
 
     #Estimate power spectra
     fourier_instance = FourierEstimator3D(simu_box)
+    k_box = np.log10(k_box)
     power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
