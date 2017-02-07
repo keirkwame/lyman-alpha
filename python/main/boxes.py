@@ -244,9 +244,9 @@ class SimulationBox(Box):
         while np.sum(skewers_with_DLAs_bool_arr) > 0: #Continue dodging while there remains DLA's
             skewers_with_DLAs_bool_arr = self._form_skewers_realisation_dodging_DLAs_single_iteration(skewers_with_DLAs_bool_arr)
 
-    def _save_new_skewers_realisation_dodging_DLAs(self,savefile_root):
-        savefile_tuple = (self._snap_dir,self._snap_num,savefile_root,self._grid_samps,self._spectrum_resolution.value)
-        self.spectra_instance.savefile = '%s/snapdir_0%i/%s_%i_%i.hdf5' % savefile_tuple
+    def _save_new_skewers_realisation_dodging_DLAs(self,savefile_root): #spectra_savedir can't be None!!!
+        savefile_tuple = (self.spectra_savedir,savefile_root,self._grid_samps,self._spectrum_resolution.value)
+        self.spectra_instance.savefile = '%s/%s_%i_%i.hdf5' % savefile_tuple
         self.spectra_instance.save_file()
 
     def form_skewers_realisation_dodging_DLAs(self, col_dens_threshold = 2.e+20 / (u.cm * u.cm), dodge_dist=10.*u.kpc, savefile_root='gridded_spectra_DLAs_dodged'):
