@@ -77,8 +77,8 @@ if __name__ == "__main__":
     reload_snapshot = False
     spec_root = 'gridded_spectra' #_DLAs_dodged' #_threshDLA_bin4sum' #17_bin4'
     mean_flux = None  # 0.75232943916324291 #0.36000591326127357 #None
-    n_bins_k = 1000
-    n_bins_mu = 4
+    n_bins_k = 10 ** (np.linspace(-1.23,1.52,16) - 3) #1000
+    n_bins_mu = np.linspace(0.,1.,8) #4
     norm = True
 
     #Test Gaussian realisations
@@ -143,8 +143,8 @@ if __name__ == "__main__":
 
     #Estimate power spectra
     fourier_instance = FourierEstimator3D(simu_box)
-    k_box = np.log10(k_box)
-    power_binned_k_mu, k_binned_2D, mu_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+    #k_box = np.log10(k_box)
+    power_binned_k_mu, k_binned_2D, errorbars = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu) #, mu_binned_2D
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
@@ -153,15 +153,14 @@ if __name__ == "__main__":
     voigt_only_power, k2, mu2 = voigt_only_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
 
     cross_instance = FourierEstimator3D(simu_box,second_box=voigt_only)
-    cross_power, k3, mu3 = cross_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
+    cross_power, k3, mu3 = cross_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)'''
 
     #Calculate model power spectra
     power_instance = PreComputedPowerSpectrum(fiducial_cosmology_fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
-    power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
-    raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))
+    '''power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
+    raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))'''
     raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
-    power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
+    #power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
     power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
-    '''
 
     colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2

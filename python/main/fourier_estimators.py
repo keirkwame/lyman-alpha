@@ -111,11 +111,12 @@ class FourierEstimator3D(FourierEstimator):
         power_sorted, k_sorted = self.get_flux_power_3D_sorted(k_box,norm)
         return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins)
 
-    def get_flux_power_3D_two_coords_hist_binned(self,coord_box1,coord_box2,n_bins1,n_bins2,norm=True):
+    def get_flux_power_3D_two_coords_hist_binned(self,coord_box1,coord_box2,n_bins1,n_bins2,norm=True,std_error=True): #Make option work
         flux_power = self.get_flux_power_3D(norm)[0].flatten()[1:]
         x = coord_box1.flatten()[1:]
         y = coord_box2.flatten()[1:]
-        return bin_f_x_y_histogram(x,y,flux_power,n_bins1,n_bins2), bin_f_x_y_histogram(x,y,x,n_bins1,n_bins2), bin_f_x_y_histogram(x,y,y,n_bins1,n_bins2)
+        return bin_f_x_y_histogram(x,y,flux_power,n_bins1,n_bins2), bin_f_x_y_histogram(x,y,x,n_bins1,n_bins2), bin_f_x_y_histogram_standard_error(x,y,flux_power,n_bins1,n_bins2)
+        #, bin_f_x_y_histogram(x,y,y,n_bins1,n_bins2)
 
     def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True): #NEEDS TIDYING-UP!!!
         power_sorted, k_sorted, mu_sorted = self.get_flux_power_3D_sorted(k_box, norm, mu_box)

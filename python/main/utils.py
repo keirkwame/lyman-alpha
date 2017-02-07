@@ -2,6 +2,7 @@ import math as mh
 import random as rd
 import numpy as np
 import numpy.random as npr
+import scipy.stats as spt
 import scipy.integrate as spi
 import scipy.special as sps
 import copy as cp
@@ -29,9 +30,16 @@ def bin_2D_data(array_2D, n_bins):
     return np.mean(arrange_data_in_3D(array_2D,n_bins), axis=-1)
 
 def bin_f_x_y_histogram(x,y,f,n_bins_x,n_bins_y):
-    samples_histogram = np.histogram2d(x, y, bins=[n_bins_x, n_bins_y])[0]
+    '''samples_histogram = np.histogram2d(x, y, bins=[n_bins_x, n_bins_y])[0]
     f_summed = np.histogram2d(x, y, bins=[n_bins_x, n_bins_y], weights=f)[0] #Needs units of f
-    return f_summed / samples_histogram
+    return f_summed / samples_histogram'''
+    return spt.binned_statistic_2d(x,y,f,statistic='mean',bins=[n_bins_x,n_bins_y])[0]
+
+def standard_error(array_1D): #Nosetests!!!
+    return np.std(array_1D, ddof=1) / mh.sqrt(array_1D.size)
+
+def bin_f_x_y_histogram_standard_error(x, y, f, n_bins_x, n_bins_y):
+    return spt.binned_statistic_2d(x,y,f,statistic=standard_error,bins=[n_bins_x,n_bins_y])[0]
 
 def get_end_index(bin_size):
     if bin_size == 1:
