@@ -246,7 +246,7 @@ class SimulationBox(Box):
 
     def _save_new_skewers_realisation_dodging_DLAs(self,savefile_root):
         savefile_tuple = (self._snap_dir,self._snap_num,savefile_root,self._grid_samps,self._spectrum_resolution.value)
-        self.spectra_instance.savefile = '%s/snapdir_00%i/%s_%i_%i.hdf5' % savefile_tuple
+        self.spectra_instance.savefile = '%s/snapdir_0%i/%s_%i_%i.hdf5' % savefile_tuple
         self.spectra_instance.save_file()
 
     def form_skewers_realisation_dodging_DLAs(self, col_dens_threshold = 2.e+20 / (u.cm * u.cm), dodge_dist=10.*u.kpc, savefile_root='gridded_spectra_DLAs_dodged'):

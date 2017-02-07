@@ -132,6 +132,8 @@ if __name__ == "__main__":
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
     simu_box, k_box, mu_box, box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
 
+    box_instance.form_skewers_realisation_dodging_DLAs()
+
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
     sigma = 10.*(u.km/u.s)
@@ -142,9 +144,10 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    fourier_instance = FourierEstimator3D(simu_box)
+    '''fourier_instance = FourierEstimator3D(simu_box)
     #k_box = np.log10(k_box)
     power_binned_k_mu, k_binned_2D, errorbars = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu) #, mu_binned_2D
+    '''
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
@@ -156,11 +159,11 @@ if __name__ == "__main__":
     cross_power, k3, mu3 = cross_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)'''
 
     #Calculate model power spectra
-    power_instance = PreComputedPowerSpectrum(fiducial_cosmology_fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
+    #power_instance = PreComputedPowerSpectrum(fiducial_cosmology_fname) #PowerLawPowerSpectrum(pow_index,pow_pivot,pow_amp) #PreComputedPowerSpectrum(fname)
     '''power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
     raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))'''
-    raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
+    #raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
     #power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
-    power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
+    #power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
 
     colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2
