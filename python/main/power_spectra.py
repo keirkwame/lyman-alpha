@@ -61,25 +61,46 @@ class PowerLawPowerSpectrum(PowerSpectrum):
 
 class PreComputedPowerSpectrum(PowerSpectrum):
     """Sub-class to interpolate as necessary a pre-computed (isotropic) power spectrum"""
-    def __init__(self,fname):
+    def __init__(self,fname,n_interpolation_samples=3000):
         self._fname = fname
+        self._n_interpolation_samples = n_interpolation_samples
 
         self.k_raw, self.power_raw = np.loadtxt(self._fname,unpack=True)
         self.k_raw = self.k_raw / u.Mpc #Convert to Astropy quantity
 
-        self.k_raw = self.k_raw[9:99910:100] #9:9999:10] #99:99999:100] #Full 100,000 is too much - 1000 is quick
-        self.power_raw = self.power_raw[9:99910:100] #9:9999:10] #99:99999:100]
+        #self.k_raw = self.k_raw #[9:99910:100] #9:9999:10] #99:99999:100] #Full 100,000 is too much - 1000 is quick
+        #self.power_raw = self.power_raw #[9:99910:100] #9:9999:10] #99:99999:100]
         #Add k = 0 - this skews interpolation
         '''self.k_raw = np.concatenate((np.array([0.]),self.k_raw))
         self.power_raw = np.concatenate((np.array([0.]), self.power_raw))'''
         print(self.k_raw[0],self.k_raw[-1])
+        #self._interpolating_func = spp.interp1d(self.k_raw,self.power_raw,kind='cubic') #Slow
 
-        self._interpolating_func = spp.interp1d(self.k_raw,self.power_raw,kind='cubic') #Slow
+    def _form_reduced_arrays(self, k_raw_reduced, power_raw_reduced):
+        '''slice_step = int(mh.ceil(k_raw_reduced.size / self._n_interpolation_samples))
+        print(slice_step)
+        print(k_raw_reduced[-1])'''
+        slice_array = gen_log_space(k_raw_reduced.size,self._n_interpolation_samples)
+        print(slice_array)
+        k_raw_reduced = k_raw_reduced[slice_array] #np.concatenate(((np.log10(k_raw_reduced.value) + 100)[::slice_step],np.array([(np.log10(k_raw_reduced.value) + 100)[-1]]))) / u.Mpc
+        print(k_raw_reduced.shape)
+        print(k_raw_reduced)
+        power_raw_reduced = power_raw_reduced[slice_array] #np.concatenate((power_raw_reduced[::slice_step],np.array([power_raw_reduced[-1]])))
+        return k_raw_reduced, power_raw_reduced
+
+    def _correction_for_interpolation(self,k_array):
+        return
+
+    def _set_interpolating_function(self,k_min,k_max):
+        k_raw_reduced_bool_arr = (self.k_raw >= (k_min-(1.e-3/u.Mpc))) * (self.k_raw <= (k_max+(1.e-3/u.Mpc))) #Hack!!!
+        k_reduced,power_reduced = self._form_reduced_arrays(self.k_raw[k_raw_reduced_bool_arr],self.power_raw[k_raw_reduced_bool_arr])
+        self._interpolating_func = spp.interp1d(np.log10(k_reduced.value) + 100, power_reduced, kind='cubic')
 
     def evaluate3d_isotropic(self, k):
-        k_modified = cp.deepcopy(k) #Very clunky function to deal with k = 0 mode, which cannot be interpolated
-        k_modified[k == 0.] = self.k_raw[0]
-        power_interpolated = self._interpolating_func(k_modified.to(1. / u.Mpc))
+        k_modified = k.to(1. / u.Mpc) #Very clunky function to deal with k = 0 mode, which cannot be interpolated
+        k_modified[k == 0.] = np.min(k_modified[k_modified > 0. / u.Mpc])
+        self._set_interpolating_function(np.min(k_modified),np.max(k_modified))
+        power_interpolated = self._interpolating_func(np.log10(k_modified.value) + 100)
         power_interpolated[k == 0.] = 0.
         return power_interpolated
 

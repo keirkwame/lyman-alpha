@@ -1,5 +1,6 @@
 import os
 import sys
+import numpy as np
 import numpy.random as npr
 import numpy.testing as npt
 import astropy.units as u
@@ -18,8 +19,7 @@ def test_pre_computed_power_spectra_no_interpolation_limit():
     fname = os.path.dirname(os.path.abspath(__file__)) + '/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
     pre_computed_power_instance = PreComputedPowerSpectrum(fname)
     power_interpolated = pre_computed_power_instance.evaluate3d_isotropic(pre_computed_power_instance.k_raw)
-    npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
-    #return power_interpolated,pre_computed_power_instance.power_raw
+    return npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
 
 def test_anisotropic_power_law_power_spectra_isotropic_limit():
     test_k = np.arange(1.e-3,1.e+2,1.e-3) / u.Mpc
@@ -56,15 +56,24 @@ def test_cross_power_spectrum():
     test_estimator_2 = FourierEstimator3D(test_box_2)
     test_estimator_cross = FourierEstimator3D(test_box_1,second_box=test_box_2)
     test_estimator_total = FourierEstimator3D(test_box_1 + test_box_2)
-    total_power = test_estimator_1.get_flux_power_3D()[0] + test_estimator_2.get_flux_power_3D()[0] + (2. * test_estimator_cross.get_flux_power_3D()[0])
-    npt.assert_allclose(total_power,test_estimator_total.get_flux_power_3D()[0])
+    total_power = test_estimator_1.get_flux_power_3D(norm=False)[0] + test_estimator_2.get_flux_power_3D(norm=False)[0] + (2. * test_estimator_cross.get_flux_power_3D(norm=False)[0])
+    npt.assert_allclose(total_power,test_estimator_total.get_flux_power_3D(norm=False)[0])
+
+def test_form_return_list():
+    test_size = 10000
+    n_bins_x_y = (10, 20)
+    test_x_y = npr.rand(2, test_size-1)
+    test_f = np.zeros(test_size)
+    test_estimator = FourierEstimator3D(test_f.reshape(10,10,100))
+    expected_zeros = [np.zeros(n_bins_x_y),np.zeros(n_bins_x_y)]
+    npt.assert_array_equal(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,True),expected_zeros)
 
 def test_bin_f_x_y_histogram():
     test_size = 10000
     n_bins_x_y = (10,20)
     test_x_y = npr.rand(2,test_size)
     test_f = np.ones(test_size)
-    return (bin_f_x_y_histogram(test_x_y[0],test_x_y[1],test_f,n_bins_x_y[0],n_bins_x_y[1]),np.ones(n_bins_x_y))
+    npt.assert_array_equal(bin_f_x_y_histogram(test_x_y[0],test_x_y[1],test_f,n_bins_x_y[0],n_bins_x_y[1]),np.ones(n_bins_x_y))
 
 def test_calculate_local_average_of_array():
     test_box = np.zeros((100, 150, 200))

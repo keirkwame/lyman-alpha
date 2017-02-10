@@ -3,6 +3,7 @@ import random as rd
 import numpy as np
 import numpy.random as npr
 import scipy.integrate as spi
+import scipy.optimize as spo
 import copy as cp
 import astropy.units as u
 import spectra as sa
@@ -177,7 +178,7 @@ class SimulationBox(Box):
         print("Size of voxels in velocity units =", self.voxel_velocities)
         for i in ['x','y','z']:
             #Comoving units
-            self.voxel_lens[i] = (self.spectra_instance.box / (self.spectra_instance.hubble * self._n_samp[i])) * u.kpc
+            self.voxel_lens[i] = (self.spectra_instance.box / (self.spectra_instance.hubble * self._n_samp[i] * 1000.)) * u.Mpc
 
         self._col_dens_threshold = 2.e+20 / (u.cm * u.cm) #Default values
         self._dodge_dist = 10.*u.kpc
@@ -196,11 +197,23 @@ class SimulationBox(Box):
         self.spectra_instance.save_file()
         return col_dens
 
+    def _get_scale(self, tau, mean_flux_desired): #Courtesy of Simeon Bird
+        """Get the factor by which we need to multiply the optical depth to get a desired mean flux.
+        ie, we want F_obs = bar{F} = < e^-tau >
+        Solve this iteratively, using Newton-Raphson:
+        S' = S + (<F> - F_obs) / <tau e^-tau>
+        This is really Lyman-alpha forest specific."""
+        #This is amazingly slow compared to C!
+        minim = lambda scale: mean_flux_desired - np.mean(np.exp(-scale * tau))
+        scale = spo.brentq(minim, 0, 20., rtol=1e-6)
+        print("Scaled by:", scale)
+        return scale
+
     def _get_delta_flux(self,tau,mean_flux_desired):
         if mean_flux_desired is None:
             return np.exp(-1.*tau) / np.mean(np.exp(-1.*tau)) - 1.
         else:
-            tau_scaling = self.spectra_instance._get_scale(tau,mean_flux_desired)
+            tau_scaling = self._get_scale(tau,mean_flux_desired)
             return np.exp(-1.*tau*tau_scaling) / mean_flux_desired - 1.
 
     def skewers_realisation(self,mean_flux_desired=None):
