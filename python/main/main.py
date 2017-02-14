@@ -129,7 +129,7 @@ if __name__ == "__main__":
     #Generate boxes
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box,k_box,mu_box,box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box2,k_box,mu_box,box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
 
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
@@ -141,8 +141,8 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu, k_binned_2D, errorbars = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu,bin_coord2=False)
+    fourier_instance = FourierEstimator3D(simu_box2)
+    power_binned_k_mu2, k_binned_2D, errorbars2 = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu,bin_coord2=False)
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)

@@ -35,7 +35,7 @@ def bin_f_x_y_histogram(x,y,f,n_bins_x,n_bins_y):
     return f_summed / samples_histogram'''
     return spt.binned_statistic_2d(x,y,f,statistic='mean',bins=[n_bins_x,n_bins_y])[0]
 
-def standard_error(array_1D): #Nosetests!!!
+def standard_error(array_1D):
     return np.std(array_1D, ddof=1) / mh.sqrt(array_1D.size)
 
 def bin_f_x_y_histogram_standard_error(x, y, f, n_bins_x, n_bins_y):
@@ -99,7 +99,7 @@ def make_box_hermitian(box):
                 box[i,j,k] = np.conj(box[-i,-j,-k])
     return box
 
-def gen_log_space(limit, n):
+def gen_log_space(limit, n): #Courtesy of http://stackoverflow.com/questions/12418234/logarithmically-spaced-integers
     result = [1]
     if n>1:  # just a check to avoid ZeroDivisionError
         ratio = (float(limit)/result[-1]) ** (1.0/(n-len(result)))

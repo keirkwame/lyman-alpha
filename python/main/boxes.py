@@ -160,7 +160,6 @@ class SimulationBox(Box):
         self._spectrum_resolution = spectrum_resolution
         self._reload_snapshot = reload_snapshot
         self._spectra_savefile_root = spectra_savefile_root
-
         self.spectra_savedir = spectra_savedir
         self.spectra_savefile = '%s_%i_%i.hdf5'%(self._spectra_savefile_root,self._grid_samps,self._spectrum_resolution.value)
 
@@ -181,7 +180,7 @@ class SimulationBox(Box):
             self.voxel_lens[i] = (self.spectra_instance.box / (self.spectra_instance.hubble * self._n_samp[i] * 1000.)) * u.Mpc
 
         self._col_dens_threshold = 2.e+20 / (u.cm * u.cm) #Default values
-        self._dodge_dist = 10.*u.kpc
+        self._dodge_dist = 10. * u.kpc
 
     def _generate_general_spectra_instance(self,cofm):
         axis = np.ones(cofm.shape[0])
@@ -258,7 +257,10 @@ class SimulationBox(Box):
             skewers_with_DLAs_bool_arr = self._form_skewers_realisation_dodging_DLAs_single_iteration(skewers_with_DLAs_bool_arr)
 
     def _save_new_skewers_realisation_dodging_DLAs(self,savefile_root): #spectra_savedir can't be None!!!
-        savefile_tuple = (self.spectra_savedir,savefile_root,self._grid_samps,self._spectrum_resolution.value)
+        if self.spectra_savedir == None:
+            savefile_tuple = (self._snap_dir + '/snapdir_' + str(self._snap_num).rjust(3,'0'),savefile_root,self._grid_samps,self._spectrum_resolution.value)
+        else:
+            savefile_tuple = (self.spectra_savedir,savefile_root,self._grid_samps,self._spectrum_resolution.value)
         self.spectra_instance.savefile = '%s/%s_%i_%i.hdf5' % savefile_tuple
         self.spectra_instance.save_file()
 

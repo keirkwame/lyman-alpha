@@ -17,7 +17,7 @@ from utils import *
 
 def test_pre_computed_power_spectra_no_interpolation_limit():
     fname = os.path.dirname(os.path.abspath(__file__)) + '/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
-    pre_computed_power_instance = PreComputedPowerSpectrum(fname)
+    pre_computed_power_instance = PreComputedPowerSpectrum(fname,n_interpolation_samples = 2500)
     power_interpolated = pre_computed_power_instance.evaluate3d_isotropic(pre_computed_power_instance.k_raw)
     return npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
 
@@ -63,10 +63,10 @@ def test_form_return_list():
     test_size = 10000
     n_bins_x_y = (10, 20)
     test_x_y = npr.rand(2, test_size-1)
-    test_f = np.zeros(test_size)
+    test_f = np.zeros(test_size) #Real-space test box
     test_estimator = FourierEstimator3D(test_f.reshape(10,10,100))
-    expected_zeros = [np.zeros(n_bins_x_y),np.zeros(n_bins_x_y)]
-    npt.assert_array_equal(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,True),expected_zeros)
+    expected_arrays = np.zeros((2,n_bins_x_y[0],n_bins_x_y[1]))
+    npt.assert_array_equal(np.array(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,True)),expected_arrays)
 
 def test_bin_f_x_y_histogram():
     test_size = 10000
@@ -74,6 +74,17 @@ def test_bin_f_x_y_histogram():
     test_x_y = npr.rand(2,test_size)
     test_f = np.ones(test_size)
     npt.assert_array_equal(bin_f_x_y_histogram(test_x_y[0],test_x_y[1],test_f,n_bins_x_y[0],n_bins_x_y[1]),np.ones(n_bins_x_y))
+
+def test_standard_error():
+    test_size = int(1.e+6)
+    assert standard_error(np.ones(test_size)) == 0.
+
+def test_bin_f_x_y_histogram_standard_error():
+    test_size = 10000
+    n_bins_x_y = (10, 20)
+    test_x_y = npr.rand(2, test_size)
+    test_f = np.ones(test_size)
+    npt.assert_array_equal(bin_f_x_y_histogram_standard_error(test_x_y[0], test_x_y[1], test_f, n_bins_x_y[0], n_bins_x_y[1]),np.zeros(n_bins_x_y))
 
 def test_calculate_local_average_of_array():
     test_box = np.zeros((100, 150, 200))
@@ -85,6 +96,10 @@ def test_make_box_hermitian():
     hermitian_box = make_box_hermitian(test_box)
     real_box = np.fft.ifftn(hermitian_box,s=(10,11,12),axes=(0,1,2))
     npt.assert_allclose(real_box.imag,np.zeros_like(real_box.imag),atol=1.e-16)
+
+def test_gen_log_space():
+    array_length = 100000
+    npt.assert_array_equal(gen_log_space(array_length,array_length),np.arange(array_length))
 
 
 #Pipeline tests - will set up tests to test all combinations of boxes and Fourier estimators

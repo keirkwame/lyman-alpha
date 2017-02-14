@@ -112,21 +112,17 @@ class FourierEstimator3D(FourierEstimator):
         return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins)
 
     def _form_return_list(self,x,y,n_bins_x,n_bins_y,norm,bin_coord_x,bin_coord_y,std_err):
-        print(bin_coord_x,bin_coord_y,std_err)
         flux_power = self.get_flux_power_3D(norm)[0].flatten()[1:]
         return_list = [None]*(1+bin_coord_x+bin_coord_y+std_err) #Number of calculations
-        print(x,y)
         return_list[0] = bin_f_x_y_histogram(x,y,flux_power,n_bins_x,n_bins_y) #Always bin power
         i=1
         if bin_coord_x == True:
-            print(x,y)
             return_list[i] = bin_f_x_y_histogram(x,y,x,n_bins_x,n_bins_y)
             i+=1
         if bin_coord_y == True:
             return_list[i] = bin_f_x_y_histogram(x,y,y,n_bins_x,n_bins_y)
             i+=1
         if std_err == True:
-            print('Here',i)
             return_list[i] = bin_f_x_y_histogram_standard_error(x,y,flux_power,n_bins_x,n_bins_y)
         return return_list
 
