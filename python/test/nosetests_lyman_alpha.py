@@ -66,7 +66,7 @@ def test_form_return_list():
     test_f = np.zeros(test_size) #Real-space test box
     test_estimator = FourierEstimator3D(test_f.reshape(10,10,100))
     expected_arrays = np.zeros((2,n_bins_x_y[0],n_bins_x_y[1]))
-    npt.assert_array_equal(np.array(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,True)),expected_arrays)
+    npt.assert_array_equal(np.array(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,False,True)),expected_arrays)
 
 def test_bin_f_x_y_histogram():
     test_size = 10000

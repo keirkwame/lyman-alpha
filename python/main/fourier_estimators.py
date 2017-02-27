@@ -81,7 +81,7 @@ class FourierEstimator3D(FourierEstimator):
         if self._second_box is None:
             flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
         else:
-            df_hat_2 = np.fft.fftn(self._second_box) / norm_fac
+            df_hat_2 = np.fft.fftn(self._second_box) * norm_fac
             flux_power = (df_hat.real * df_hat_2.real) + (df_hat.imag * df_hat_2.imag)
         return flux_power, df_hat
 
@@ -111,9 +111,9 @@ class FourierEstimator3D(FourierEstimator):
         power_sorted, k_sorted = self.get_flux_power_3D_sorted(k_box,norm)
         return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins)
 
-    def _form_return_list(self,x,y,n_bins_x,n_bins_y,norm,bin_coord_x,bin_coord_y,std_err):
+    def _form_return_list(self,x,y,n_bins_x,n_bins_y,norm,bin_coord_x,bin_coord_y,count,std_err):
         flux_power = self.get_flux_power_3D(norm)[0].flatten()[1:]
-        return_list = [None]*(1+bin_coord_x+bin_coord_y+std_err) #Number of calculations
+        return_list = [None]*(1+bin_coord_x+bin_coord_y+count+std_err) #Number of calculations
         return_list[0] = bin_f_x_y_histogram(x,y,flux_power,n_bins_x,n_bins_y) #Always bin power
         i=1
         if bin_coord_x == True:
@@ -122,14 +122,17 @@ class FourierEstimator3D(FourierEstimator):
         if bin_coord_y == True:
             return_list[i] = bin_f_x_y_histogram(x,y,y,n_bins_x,n_bins_y)
             i+=1
+        if count == True:
+            return_list[i] = bin_f_x_y_histogram_count(x,y,flux_power,n_bins_x,n_bins_y)
+            i+=1
         if std_err == True:
             return_list[i] = bin_f_x_y_histogram_standard_error(x,y,flux_power,n_bins_x,n_bins_y)
         return return_list
 
-    def get_flux_power_3D_two_coords_hist_binned(self,coord_box1,coord_box2,n_bins1,n_bins2,norm=True,bin_coord1=True,bin_coord2=True,std_err=True):
+    def get_flux_power_3D_two_coords_hist_binned(self,coord_box1,coord_box2,n_bins1,n_bins2,norm=True,bin_coord1=True,bin_coord2=True,count=True,std_err=True):
         x = coord_box1.flatten()[1:] #USE BINNUMBER!!!
         y = coord_box2.flatten()[1:]
-        return self._form_return_list(x,y,n_bins1,n_bins2,norm,bin_coord1,bin_coord2,std_err)
+        return self._form_return_list(x,y,n_bins1,n_bins2,norm,bin_coord1,bin_coord2,count,std_err)
 
     def get_flux_power_legendre_integrand(self,k_box,mu_box,n_bins,norm=True): #NEEDS TIDYING-UP!!!
         power_sorted, k_sorted, mu_sorted = self.get_flux_power_3D_sorted(k_box, norm, mu_box)

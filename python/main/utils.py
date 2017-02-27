@@ -41,6 +41,9 @@ def standard_error(array_1D):
 def bin_f_x_y_histogram_standard_error(x, y, f, n_bins_x, n_bins_y):
     return spt.binned_statistic_2d(x,y,f,statistic=standard_error,bins=[n_bins_x,n_bins_y])[0]
 
+def bin_f_x_y_histogram_count(x,y,f,n_bins_x,n_bins_y):
+    return spt.binned_statistic_2d(x,y,f,statistic='count',bins=[n_bins_x,n_bins_y])[0]
+
 def get_end_index(bin_size):
     if bin_size == 1:
         return None

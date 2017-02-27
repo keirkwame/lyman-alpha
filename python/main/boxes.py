@@ -78,14 +78,14 @@ class GaussianBox(Box):
 
         self._num_voigt = 0
         self.num_clean_skewers = self.nskewers
-        self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers) #, dtype=bool)  # Array of Falses
+        self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers)
         self._voigt_profile_skewers_bool_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
 
-    def _gauss_realisation(self, power_evaluated, k_box): #Really want Hermitian Fourier modes
+    def _gauss_realisation(self, power_evaluated, k_box):
         gauss_k=np.sqrt(0.5*power_evaluated)*(npr.standard_normal(size=power_evaluated.shape)+npr.standard_normal(size=power_evaluated.shape)*1.j)
         gauss_k[k_box == 0.] = 0. #Zeroing the mean
         gauss_k_hermitian = make_box_hermitian(gauss_k)
-        return np.fft.ifftn(gauss_k_hermitian, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2)) ,gauss_k
+        return np.fft.ifftn(gauss_k_hermitian, s=(self._n_samp['x'], self._n_samp['y'], self._n_samp['z']), axes=(0, 1, 2))
 
     def isotropic_power_law_gauss_realisation(self,pow_index,pow_pivot,pow_amp):
         box_spectra = PowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
