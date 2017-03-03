@@ -34,6 +34,13 @@ class Box(object):
         else:
             return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi
 
+    def k_z_mod(self):
+        if self.convert_fourier_units_to_distance == False:
+            box_units = self.voxel_velocities['z']
+        else:
+            box_units = self.voxel_lens['z']
+        return np.fft.rfftfreq(self._n_samp['z'], d=box_units) * 2. * mh.pi
+
     def k_z_mod_box(self): #Generalise to any k_i
         x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]
         y = np.zeros_like(self.k_i('y'))[np.newaxis, :, np.newaxis]

@@ -22,25 +22,30 @@ class FourierEstimator(object): #Need object dependence so sub-classes can inher
 
 class FourierEstimator1D(FourierEstimator):
     """Sub-class to calculate 1D power spectra"""
-    def __init__(self,gauss_box,n_skewers,second_box=None):
+    def __init__(self,gauss_box,second_box=None,n_skewers=None):
         super(FourierEstimator1D, self).__init__(gauss_box,second_box)
-        self._nskewers = n_skewers
+        if n_skewers == None:
+            self._n_skewers = self._gauss_box.shape[0] * self._gauss_box.shape[1]
+        else:
+            self._n_skewers = n_skewers
 
-    def samples_1D(self):
+    def samples_1D(self): #NOT USED AT THE MOMENT!!!
         return rd.sample(np.arange(self._gauss_box.shape[0] * self._gauss_box.shape[1]), self._nskewers)
 
     def skewers_1D(self):
         return self._gauss_box.reshape((self._gauss_box.shape[0] * self._gauss_box.shape[1], -1)) #[self.samples_1D(), :]
 
     #COURTESY OF SIMEON BIRD
-    def get_flux_power_1D(self): #MODIFY FOR SECOND BOX
+    def get_flux_power_1D(self,norm=True): #MODIFY FOR SECOND BOX
         delta_flux = self.skewers_1D()
-
-        df_hat = np.fft.fft(delta_flux, axis=1)
+        if norm == False:
+            norm_fac = 1.
+        elif norm == True:
+            norm_fac = 1. / delta_flux.shape[-1]
+        df_hat = np.fft.rfft(delta_flux, axis=1) * norm_fac
         flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2
         #Average over all sightlines
         avg_flux_power = np.mean(flux_power, axis=0)
-
         return avg_flux_power
 
 
@@ -76,7 +81,7 @@ class FourierEstimator3D(FourierEstimator):
         if norm == False:
             norm_fac = 1.
         elif norm == True:
-            norm_fac = mh.sqrt(((2. * mh.pi) ** 3) / flux_real.size) #flux_real.size #CHECK THIS!!! - ortho norm to 2*pi
+            norm_fac = 1. / flux_real.size
         df_hat = np.fft.fftn(flux_real) * norm_fac
         if self._second_box is None:
             flux_power = np.real(df_hat) ** 2 + np.imag(df_hat) ** 2

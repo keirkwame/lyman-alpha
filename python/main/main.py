@@ -2,6 +2,7 @@ import math as mh
 import random as rd
 import numpy as np
 import numpy.random as npr
+import numpy.testing as npt
 import scipy.integrate as spi
 import copy as cp
 import astropy.units as u
@@ -18,7 +19,7 @@ from fourier_estimators import *
 
 def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra',spectra_savedir=None,mean_flux_desired=None):
     box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root,spectra_savedir=spectra_savedir)
-    box_instance.convert_fourier_units_to_distance = True
+    box_instance.convert_fourier_units_to_distance = False #True
     print(box_instance._n_samp)
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
     return box_instance.skewers_realisation(mean_flux_desired=mean_flux_desired), box_instance.k_box(), box_instance.mu_box(), box_instance
@@ -75,23 +76,9 @@ if __name__ == "__main__":
     spectra_savedir = sys.argv[5]
     fiducial_cosmology_fname = sys.argv[6]
     reload_snapshot = False
-    spec_root = 'gridded_spectra' #_DLAs_dodged'
-    mean_flux = None #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
-
-    #To match GenPK k-binning
-    '''nrbins = 300.
-    dims = 300.
-    binsperunit = (nrbins - 1) / mh.log((mh.sqrt(3.) * dims) / 2.)'''
-
-    k_min = 2. * mh.pi * 0.704 / 75.
-    k_max = 2. * mh.pi * 0.704 * 150. * mh.sqrt(3.) / 75.
-    k_max_upper = mh.exp(mh.log(k_max) + ((mh.log(k_max) - mh.log(k_min)) / 29.))
-
-    n_bins_k = np.exp(np.linspace(mh.log(k_min), mh.log(k_max_upper), 31))
-    n_bins_k[-2] = k_max #HACK TO FIX BINNING OF NYQUIST FREQUENCY
-    #-1.229308735891473,1.185343150524040,301)) #-1.23,1.19,16)) #-0.75,1.52,16 #-1.23,1.52,16) - 0) #3) #1/Mpc #TEST ADDING UNITS!
-    n_bins_mu = np.linspace(0.,1.,5)
-    norm = False
+    spec_root = 'gridded_spectra_DLAs_dodged'
+    mean_flux = 0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
+    norm = True
 
     #Test Gaussian realisations input
     '''pow_index = 0.
@@ -140,7 +127,20 @@ if __name__ == "__main__":
     #Generate boxes
     #simu_box, k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box,k_box,mu_box,box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box,k_box,mu_box,box_instance_without_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+
+    #Binning
+    '''n_bins_mu = 8
+    n_bins_k = 15
+
+    k_min = np.min(k_box[k_box > 0. / u.Mpc]) #2. * mh.pi * 0.704 / 75.
+    k_max = np.max(k_box) #2. * mh.pi * 0.704 * 150. * mh.sqrt(3.) / 75.
+    k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_bins_k - 1))) / u.Mpc
+
+    k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_bins_k + 1)) / u.Mpc
+    k_bin_edges[-2] = k_max #HACK TO FIX BINNING OF NYQUIST FREQUENCY
+    #-1.229308735891473,1.185343150524040,301)) #-1.23,1.19,16)) #-0.75,1.52,16 #-1.23,1.52,16) - 0) #3) #1/Mpc #TEST ADDING UNITS!
+    mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)'''
 
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
@@ -152,8 +152,53 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    fourier_instance = FourierEstimator3D(simu_box)
-    power_binned_k_mu, k_binned_2D, counts = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu,bin_coord2=False,std_err=False)
+    '''fourier_instance = FourierEstimator3D(simu_box)
+    power_binned_k_mu, k_binned_2D, bin_counts = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, bin_coord2=False, std_err=False, norm=norm)
+    '''
+
+    #Estimate 1D power spectra
+    k_z_mod = box_instance_without_DLA.k_z_mod()
+    fourier_instance_1D = FourierEstimator1D(simu_box)
+    power_1D_without_DLA_match_flux = fourier_instance_1D.get_flux_power_1D()
+
+    #Load GenPK power spectra
+    '''genpk_raw_data = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/PK-DM-snap_064')
+
+    genpk_power = [None] * n_bins_mu
+    genpk_k = [None] * n_bins_mu
+    genpk_counts = [None] * n_bins_mu
+    genpk_counts_mu_sum = [None] * n_bins_mu
+    genpk_counts_total = 0.
+    for i in range(n_bins_mu):
+        genpk_mu_bool_array_geq_cond = genpk_raw_data[:,3] >= mu_bin_edges[i] #i / n_bins_mu
+        if i <  n_bins_mu - 1:
+            genpk_mu_bool_array = genpk_mu_bool_array_geq_cond * (genpk_raw_data[:,3] < mu_bin_edges[i+1]) #(i + 1) / n_bins_mu)
+        else:
+            genpk_mu_bool_array = genpk_mu_bool_array_geq_cond * (genpk_raw_data[:, 3] <= 1.)
+        genpk_power[i] = genpk_raw_data[genpk_mu_bool_array][:,1] * ((box_instance.spectra_instance.box / 1000.)**3.) #Mpc^3 / h^3
+        genpk_k[i] = genpk_raw_data[genpk_mu_bool_array][:,0] * 2. * mh.pi / (box_instance.spectra_instance.box / 1000.) #h / Mpc
+        genpk_counts[i] = genpk_raw_data[genpk_mu_bool_array][:,2]
+
+        print(genpk_counts[i], bin_counts[:,i][bin_counts[:,i] > 0.])
+        npt.assert_array_equal(genpk_counts[i], bin_counts[:,i][bin_counts[:,i] > 0.])
+        print(genpk_k[i], k_binned_2D[:, i][bin_counts[:, i] > 0.] / box_instance.spectra_instance.hubble)
+        npt.assert_allclose(genpk_k[i], k_binned_2D[:, i][bin_counts[:, i] > 0.] / box_instance.spectra_instance.hubble, rtol=1.e-06)
+        genpk_counts_mu_sum[i] = np.sum(genpk_counts[i])
+        genpk_counts_total += np.sum(genpk_counts[i])
+
+    genpk_counts_k = [None] * n_bins_k
+    genpk_counts_k_sum = [None] * n_bins_k
+    for i in range(n_bins_k):
+        genpk_k_bool_array_geq_cond = genpk_raw_data[:, 0] * 2. * mh.pi / (box_instance.spectra_instance.box / 1000.) >= k_bin_edges[i].value / box_instance.spectra_instance.hubble  # i / n_bins_mu
+        if i < n_bins_k - 1:
+            genpk_k_bool_array = genpk_k_bool_array_geq_cond * (genpk_raw_data[:, 0] * 2. * mh.pi / (box_instance.spectra_instance.box / 1000.) < k_bin_edges[i + 1].value / box_instance.spectra_instance.hubble)  # (i + 1) / n_bins_mu)
+        else:
+            genpk_k_bool_array = genpk_k_bool_array_geq_cond * (genpk_raw_data[:, 0] * 2. * mh.pi / (box_instance.spectra_instance.box / 1000.) <= k_bin_edges[i + 1].value / box_instance.spectra_instance.hubble)
+        genpk_counts_k[i] = genpk_raw_data[genpk_k_bool_array][:, 2]
+        genpk_counts_k_sum[i] = np.sum(genpk_counts_k[i])
+
+    print('Total number of samples = %f, %f, %f' %(genpk_counts_total, np.sum(bin_counts), box_instance._n_samp['x']*box_instance._n_samp['y']*box_instance._n_samp['z'] - 1.))
+    '''
 
     '''voigt_instance = FourierEstimator3D(voigt_box)
     voigt_power, k, mu = voigt_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),n_bins_k,n_bins_mu)
@@ -168,8 +213,9 @@ if __name__ == "__main__":
     #power_instance = PreComputedPowerSpectrum(fiducial_cosmology_fname)
     '''power_instance.set_anisotropic_functional_form(BOSS_DLA_mu_coefficients)
     raw_model_power = power_instance.evaluate3d_anisotropic(k_box,np.absolute(mu_box))'''
-    #raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box)
+    #raw_model_isotropic_power = power_instance.evaluate3d_isotropic(k_box / box_instance.spectra_instance.hubble)
     #power_binned_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_power.flatten()[1:],n_bins_k,n_bins_mu)
-    #power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],n_bins_k,n_bins_mu)
+    #power_binned_isotropic_model = bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],raw_model_isotropic_power.flatten()[1:],k_bin_edges,mu_bin_edges)
+    #power_isotropic_model = power_instance.evaluate3d_isotropic(k_binned_2D / box_instance.spectra_instance.hubble / u.Mpc) #Crashes because of nan's
 
-    colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown'] * 2
+    colors = ['blue', 'green', 'red', 'cyan', 'magenta', 'orange', 'brown', 'black'] * 2
