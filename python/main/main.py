@@ -76,8 +76,8 @@ if __name__ == "__main__":
     spectra_savedir = sys.argv[5]
     fiducial_cosmology_fname = sys.argv[6]
     reload_snapshot = False
-    spec_root = 'gridded_spectra_DLAs_dodged'
-    mean_flux = 0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
+    spec_root = 'gridded_spectra' #_DLAs_dodged'
+    mean_flux = None #0.68299813251533592 #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
     norm = True
 
     #Test Gaussian realisations input
@@ -127,7 +127,10 @@ if __name__ == "__main__":
     #Generate boxes
     #simu_box, k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box,k_box,mu_box,box_instance_without_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box,k_box,mu_box,box_instance_with_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+
+    #Column density distribution
+    max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
 
     #Binning
     '''n_bins_mu = 8
@@ -157,9 +160,33 @@ if __name__ == "__main__":
     '''
 
     #Estimate 1D power spectra
-    k_z_mod = box_instance_without_DLA.k_z_mod()
+    '''k_z_mod = box_instance_with_DLA.k_z_mod()
     fourier_instance_1D = FourierEstimator1D(simu_box)
-    power_1D_without_DLA_match_flux = fourier_instance_1D.get_flux_power_1D()
+    power_1D_with_DLA = fourier_instance_1D.get_flux_power_1D()'''
+
+    '''simu_box_without_DLA = box_instance_with_DLA.skewers_realisation_without_DLAs(mean_flux_desired=mean_flux)
+    fourier_instance_1D_without_DLA = FourierEstimator1D(simu_box_without_DLA)
+    power_1D_without_DLA = fourier_instance_1D_without_DLA.get_flux_power_1D()
+
+    simu_box_with_DLA_only = box_instance_with_DLA.skewers_realisation_with_DLAs_only(mean_flux_desired=mean_flux)
+    fourier_instance_1D_with_DLA_only = FourierEstimator1D(simu_box_with_DLA_only)
+    power_1D_with_DLA_only = fourier_instance_1D_with_DLA_only.get_flux_power_1D()
+
+
+    #Dodged spectra
+    spec_root = 'gridded_spectra_DLAs_dodged'
+    simu_box_dodged,k_box,mu_box,box_instance_dodged = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+
+    fourier_instance_1D_dodged = FourierEstimator1D(simu_box_dodged)
+    power_1D_dodged = fourier_instance_1D_dodged.get_flux_power_1D()
+
+    simu_box_dodged_unmoved = box_instance_dodged.skewers_realisation_without_DLAs(mean_flux_desired=mean_flux,skewers_with_DLAs_bool_arr=box_instance_with_DLA._get_skewers_with_DLAs_bool_arr(box_instance_with_DLA.get_column_density()))
+    fourier_instance_1D_dodged_unmoved = FourierEstimator1D(simu_box_dodged_unmoved)
+    power_1D_dodged_unmoved = fourier_instance_1D_dodged_unmoved.get_flux_power_1D()
+
+    simu_box_dodged_moved = box_instance_dodged.skewers_realisation_with_DLAs_only(mean_flux_desired=mean_flux,skewers_with_DLAs_bool_arr=box_instance_with_DLA._get_skewers_with_DLAs_bool_arr(box_instance_with_DLA.get_column_density()))
+    fourier_instance_1D_dodged_moved = FourierEstimator1D(simu_box_dodged_moved)
+    power_1D_dodged_moved = fourier_instance_1D_dodged_moved.get_flux_power_1D()'''
 
     #Load GenPK power spectra
     '''genpk_raw_data = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/PK-DM-snap_064')

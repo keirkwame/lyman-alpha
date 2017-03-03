@@ -33,7 +33,10 @@ class FourierEstimator1D(FourierEstimator):
         return rd.sample(np.arange(self._gauss_box.shape[0] * self._gauss_box.shape[1]), self._nskewers)
 
     def skewers_1D(self):
-        return self._gauss_box.reshape((self._gauss_box.shape[0] * self._gauss_box.shape[1], -1)) #[self.samples_1D(), :]
+        if self._gauss_box.ndim == 3:
+            return self._gauss_box.reshape((self._gauss_box.shape[0] * self._gauss_box.shape[1], -1)) #[self.samples_1D(), :]
+        elif self._gauss_box.ndim == 2:
+            return self._gauss_box
 
     #COURTESY OF SIMEON BIRD
     def get_flux_power_1D(self,norm=True): #MODIFY FOR SECOND BOX

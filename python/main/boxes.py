@@ -215,26 +215,55 @@ class SimulationBox(Box):
         print("Scaled by:", scale)
         return scale
 
-    def _get_delta_flux(self,tau,mean_flux_desired):
+    def _get_delta_flux(self,tau,mean_flux_desired,mean_flux_specified):
         if mean_flux_desired is None:
-            return np.exp(-1.*tau) / np.mean(np.exp(-1.*tau)) - 1.
+            tau_scaling = 1.
         else:
             tau_scaling = self._get_scale(tau,mean_flux_desired)
-            return np.exp(-1.*tau*tau_scaling) / mean_flux_desired - 1.
+        if mean_flux_specified is None:
+            mean_flux = np.mean(np.exp(-1.*tau*tau_scaling))
+        else:
+            mean_flux = mean_flux_specified
+        return np.exp(-1.*tau*tau_scaling) / mean_flux - 1.
 
-    def skewers_realisation(self,mean_flux_desired=None):
+    def skewers_realisation(self,mean_flux_desired=None,mean_flux_specified=None):
         tau = self.get_optical_depth()
-        delta_flux = self._get_delta_flux(tau,mean_flux_desired)
+        delta_flux = self._get_delta_flux(tau,mean_flux_desired,mean_flux_specified)
         return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
+
+    def skewers_realisation_without_DLAs(self,mean_flux_desired=None,mean_flux_specified=None,skewers_with_DLAs_bool_arr=None):
+        tau = self.get_optical_depth()
+        if skewers_with_DLAs_bool_arr == None:
+            skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.get_column_density())
+        tau_without_DLAs = tau[~ skewers_with_DLAs_bool_arr]
+        return self._get_delta_flux(tau_without_DLAs, mean_flux_desired, mean_flux_specified)
+
+    def skewers_realisation_with_DLAs_only(self,mean_flux_desired=None,mean_flux_specified=None,skewers_with_DLAs_bool_arr=None):
+        tau = self.get_optical_depth()
+        if skewers_with_DLAs_bool_arr == None:
+            skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.get_column_density())
+        tau_with_DLAs_only = tau[skewers_with_DLAs_bool_arr]
+        return self._get_delta_flux(tau_with_DLAs_only, mean_flux_desired, mean_flux_specified)
+
+    def skewers_realisation_subset(self,boolean_mask,mean_flux_desired=None,mean_flux_specified=None):
+        tau = self.get_optical_depth()[boolean_mask.flatten()]
+        return self._get_delta_flux(tau, mean_flux_desired, mean_flux_specified)
+
+    def max_local_sum_of_column_density_in_each_skewer(self):
+        col_dens_local_sum = self._get_local_sum_of_column_density(self.get_column_density())
+        return np.max(col_dens_local_sum,axis=-1).reshape((self._grid_samps, self._grid_samps))
 
     def _get_skewers_with_DLAs_bool_arr_simple_threshold(self,col_dens):
         return np.max(col_dens, axis=-1) > self._col_dens_threshold
 
-    def _get_skewers_with_DLAs_bool_arr_local_sum_threshold(self, col_dens):
-        size_of_bin_in_velocity = 100. * (u.km / u.s) #self.voxel_velocities['z'] #MAKE INPUT ARGUMENT!!!
+    def _get_local_sum_of_column_density(self,col_dens):
+        size_of_bin_in_velocity = 100. * (u.km / u.s)  # self.voxel_velocities['z'] #MAKE INPUT ARGUMENT!!!
         size_of_bin_in_samples = round(size_of_bin_in_velocity.value / self.voxel_velocities['z'].value)
-        print("\nSize of bin in samples = %i" %size_of_bin_in_samples)
-        col_dens_local_sum = (calculate_local_average_of_array(col_dens.value,size_of_bin_in_samples)*size_of_bin_in_samples)/(u.cm * u.cm)
+        print("\nSize of bin in samples = %i" % size_of_bin_in_samples)
+        return (calculate_local_average_of_array(col_dens.value,size_of_bin_in_samples) * size_of_bin_in_samples) / (u.cm * u.cm)
+
+    def _get_skewers_with_DLAs_bool_arr_local_sum_threshold(self, col_dens):
+        col_dens_local_sum = self._get_local_sum_of_column_density(col_dens)
         return self._get_skewers_with_DLAs_bool_arr_simple_threshold(col_dens_local_sum)
 
     def _get_skewers_with_DLAs_bool_arr(self,col_dens):
