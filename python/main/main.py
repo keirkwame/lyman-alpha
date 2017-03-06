@@ -132,6 +132,37 @@ if __name__ == "__main__":
     #Column density distribution
     max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
 
+    #Masks
+    mask_large_dla = max_col_dens_100kms > 1.e+21 / (u.cm * u.cm)
+    mask_small_dla = (max_col_dens_100kms > 2.e+20 / (u.cm * u.cm)) * (max_col_dens_100kms <= 1.e+21 / (u.cm * u.cm))
+    mask_sub_dla = (max_col_dens_100kms > 1.e+19 / (u.cm * u.cm)) * (max_col_dens_100kms <= 2.e+20 / (u.cm * u.cm))
+    mask_lls = (max_col_dens_100kms > 1.6e+17 / (u.cm * u.cm)) * (max_col_dens_100kms <= 1.e+19 / (u.cm * u.cm))
+    mask_forest = (max_col_dens_100kms > 0. / (u.cm * u.cm)) * (max_col_dens_100kms <= 1.6e+17 / (u.cm * u.cm))
+
+    #Delta fluxes
+    mean_flux_whole_box = np.mean(np.exp(-1.*box_instance_with_DLA.get_optical_depth()))
+
+    simu_box_large_dla = box_instance_with_DLA.skewers_realisation_subset(mask_large_dla,mean_flux_specified=mean_flux_whole_box)
+    simu_box_small_dla = box_instance_with_DLA.skewers_realisation_subset(mask_small_dla,mean_flux_specified=mean_flux_whole_box)
+    simu_box_sub_dla = box_instance_with_DLA.skewers_realisation_subset(mask_sub_dla,mean_flux_specified=mean_flux_whole_box)
+    simu_box_lls = box_instance_with_DLA.skewers_realisation_subset(mask_lls,mean_flux_specified=mean_flux_whole_box)
+    simu_box_forest = box_instance_with_DLA.skewers_realisation_subset(mask_forest,mean_flux_specified=mean_flux_whole_box)
+
+    #1D powers
+    power_total_instance = FourierEstimator1D(simu_box)
+    power_total = power_total_instance.get_flux_power_1D()
+
+    power_large_dla_instance = FourierEstimator1D(simu_box_large_dla)
+    power_large_dla = power_large_dla_instance.get_flux_power_1D()
+    power_small_dla_instance = FourierEstimator1D(simu_box_small_dla)
+    power_small_dla = power_small_dla_instance.get_flux_power_1D()
+    power_sub_dla_instance = FourierEstimator1D(simu_box_sub_dla)
+    power_sub_dla = power_sub_dla_instance.get_flux_power_1D()
+    power_lls_instance = FourierEstimator1D(simu_box_lls)
+    power_lls = power_lls_instance.get_flux_power_1D()
+    power_forest_instance = FourierEstimator1D(simu_box_forest)
+    power_forest = power_forest_instance.get_flux_power_1D()
+
     #Binning
     '''n_bins_mu = 8
     n_bins_k = 15
