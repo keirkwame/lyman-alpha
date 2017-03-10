@@ -228,10 +228,19 @@ class SimulationBox(Box):
             mean_flux = mean_flux_specified
         return np.exp(-1.*tau*tau_scaling) / mean_flux - 1.
 
+    def _get_delta_density(self,density):
+        mean_density = np.mean(density)
+        return density / mean_density - 1.
+
     def skewers_realisation(self,mean_flux_desired=None,mean_flux_specified=None):
         tau = self.get_optical_depth()
         delta_flux = self._get_delta_flux(tau,mean_flux_desired,mean_flux_specified)
         return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
+
+    def skewers_realisation_hydrogen_overdensity(self, ion = None):
+        col_dens = self.get_column_density(ion = ion)
+        delta_density = self._get_delta_density(col_dens)
+        return delta_density.reshape((self._grid_samps, self._grid_samps, -1))
 
     def skewers_realisation_without_DLAs(self,mean_flux_desired=None,mean_flux_specified=None,skewers_with_DLAs_bool_arr=None):
         tau = self.get_optical_depth()
