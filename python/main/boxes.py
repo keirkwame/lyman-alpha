@@ -198,8 +198,10 @@ class SimulationBox(Box):
         self.spectra_instance.save_file()  # Save spectra to file
         return tau
 
-    def get_column_density(self):
-        col_dens = self.spectra_instance.get_col_density(self.element, self.ion) / (u.cm * u.cm) #SLOW if not reloading
+    def get_column_density(self, ion = None):
+        if ion is None: #Ability to specify ionic species
+            ion = self.ion
+        col_dens = self.spectra_instance.get_col_density(self.element, ion) / (u.cm * u.cm) #SLOW if not reloading
         self.spectra_instance.save_file()
         return col_dens
 
