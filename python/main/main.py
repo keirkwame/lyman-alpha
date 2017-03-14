@@ -19,7 +19,7 @@ from fourier_estimators import *
 
 def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra',spectra_savedir=None,mean_flux_desired=None):
     box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root,spectra_savedir=spectra_savedir)
-    box_instance.convert_fourier_units_to_distance = True
+    box_instance.convert_fourier_units_to_distance = False
     print(box_instance._n_samp)
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
     return box_instance.skewers_realisation(mean_flux_desired=mean_flux_desired), box_instance.k_box(), box_instance.mu_box(), box_instance
@@ -127,10 +127,10 @@ if __name__ == "__main__":
     #Generate boxes
     #simu_box, k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box,k_box,mu_box,box_instance = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box,k_box,mu_box,box_instance_with_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
 
     #Column density distribution
-    '''max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
+    max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
 
     #Masks
     mask_large_dla = max_col_dens_100kms > 1.e+21 / (u.cm * u.cm)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     #Model comparison
     def mcdonald(k):
-        return 0.2 * ((1. / ((15000 * k) - 8.9)) + 0.018) * 0.3'''
+        return 0.2 * ((1. / ((15000 * k) - 8.9)) + 0.018)
 
     #Binning
     '''n_bins_mu = 8
@@ -185,14 +185,14 @@ if __name__ == "__main__":
     k_bin_edges[-2] = k_max #HACK TO FIX BINNING OF NYQUIST FREQUENCY
     #-1.229308735891473,1.185343150524040,301)) #-1.23,1.19,16)) #-0.75,1.52,16 #-1.23,1.52,16) - 0) #3) #1/Mpc #TEST ADDING UNITS!
     mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)'''
-    n_bins_mu = 8
+    '''n_bins_mu = 8
     n_bins_k = 15
     k_min = np.min(k_box[k_box > 0. / u.Mpc])
     k_max = np.max(k_box)
     k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_bins_k - 1))) / u.Mpc
     k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_bins_k + 1)) / u.Mpc
     k_bin_edges[-2] = k_max
-    mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)
+    mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)'''
 
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
@@ -204,8 +204,9 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    fourier_instance = FourierEstimator3D(simu_box)
+    '''fourier_instance = FourierEstimator3D(simu_box)
     power_binned_k_mu, k_binned_2D, bin_counts = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, bin_coord2=False, std_err=False, norm=norm)
+    '''
 
     #Estimate 1D power spectra
     '''k_z_mod = box_instance_with_DLA.k_z_mod()
