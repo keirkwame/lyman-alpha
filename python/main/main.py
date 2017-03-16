@@ -4,6 +4,7 @@ import numpy as np
 import numpy.random as npr
 import numpy.testing as npt
 import scipy.integrate as spi
+import scipy.optimize as spo
 import copy as cp
 import astropy.units as u
 import spectra as sa
@@ -168,6 +169,15 @@ if __name__ == "__main__":
 
     k_z_mod = box_instance_with_DLA.k_z_mod()
 
+    #Template fit
+    def hcd_model(k_z_mod, a, b, c):
+        return (1. / (((a * np.exp(b * k_z_mod)) - 1.)**2)) + c
+        #return (1. / ((k_z_mod + b)**a)) + c
+
+    best_fit_params_large_dla, covar_large_dla = spo.curve_fit(hcd_model, k_z_mod[1:], power_large_dla[1:] / power_forest[1:])
+    best_fit_params_small_dla, covar_small_dla = spo.curve_fit(hcd_model, k_z_mod[1:], power_small_dla[1:] / power_forest[1:])
+    best_fit_params_sub_dla, covar_sub_dla = spo.curve_fit(hcd_model, k_z_mod[1:], power_sub_dla[1:] / power_forest[1:])
+    best_fit_params_lls, covar_lls = spo.curve_fit(hcd_model, k_z_mod[1:], power_lls[1:] / power_forest[1:])
 
     #Model comparison
     def mcdonald(k):
