@@ -169,8 +169,12 @@ if __name__ == "__main__":
 
     k_z_mod = box_instance_with_DLA.k_z_mod()
 
+    #Saving power spectra
+    power_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
+    np.save(power_fname,np.vstack((k_z_mod.value,power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))
+
     #Template fit
-    def hcd_model(k_z_mod, a, b, c):
+    '''def hcd_model(k_z_mod, a, b, c):
         return (1. / (((a * np.exp(b * k_z_mod)) - 1.)**2)) + c
         #return (1. / ((k_z_mod + b)**a)) + c
 
@@ -181,7 +185,7 @@ if __name__ == "__main__":
 
     #Model comparison
     def mcdonald(k):
-        return 0.2 * ((1. / ((15000 * k) - 8.9)) + 0.018)
+        return 0.2 * ((1. / ((15000 * k) - 8.9)) + 0.018)'''
 
     #Binning
     '''n_bins_mu = 8
