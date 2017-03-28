@@ -22,7 +22,7 @@ if __name__ == "__main__":
     undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=True, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
 
     '''undodged_spectra_ins.convert_fourier_units_to_distance = True
-    spectra_box = undodged_spectra_ins.skewers_realisation()
+    spectra_box = undodged_spectra_ins.skewers_realisation_hydrogen_overdensity(ion = -1)
     k_box = undodged_spectra_ins.k_box()
     mu_box = undodged_spectra_ins.mu_box()
 
@@ -36,13 +36,13 @@ if __name__ == "__main__":
     mu_bin_edges = np.linspace(0., 1., n_mu_bins + 1)
 
     fourier_estimator_instance = fou.FourierEstimator3D(spectra_box)
-    power_binned, k_binned, bin_counts = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
+    power_binned, k_binned, bin_counts = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)'''
 
-    power_spectrum_instance = spe.PreComputedPowerSpectrum(model_cosmology_filename)
+    '''power_spectrum_instance = spe.PreComputedPowerSpectrum(model_cosmology_filename)
     model_power = power_spectrum_instance.evaluate3d_isotropic(k_box / undodged_spectra_ins.spectra_instance.hubble)
-    model_power_binned = uti.bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],model_power.flatten()[1:],k_bin_edges,mu_bin_edges)
+    model_power_binned = uti.bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],model_power.flatten()[1:],k_bin_edges,mu_bin_edges)'''
 
-    np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power.npz',power_binned,k_binned,bin_counts,model_power_binned)'''
+    #np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power.npz',power_binned,k_binned,bin_counts) #,model_power_binned)
 
     print("Finished")
     column_density = undodged_spectra_ins.get_column_density()
