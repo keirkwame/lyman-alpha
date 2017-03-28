@@ -59,6 +59,8 @@ def plot_linear_flux_power_3D(k_mod,power,f_name):
 
     plot_instance = Plot()
     fig, ax = plot_instance.plot_lines(k_mod, power, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale)
+    ax.set_xlim([5.e-2,50.])
+    ax.set_ylim([8.e-6,1.e+4])
     plt.savefig(f_name)
 
 class Plot():
@@ -96,14 +98,14 @@ class Plot():
 if __name__ == "__main__":
     #make_plot_contaminant_power_ratios_1D()
 
-    f_name = '/Users/keir/Documents/dla_papers/paper_3D/linear_flux_power_3D.png'
+    f_name = '/Users/keir/Documents/dla_papers/paper_3D/linear_flux_power_3D_high_res.png'
 
     k_pk_linear = np.loadtxt('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_4_snap64.dat')
-    k_pk_dark_matter = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/PK-DM-snap_064_mu1',usecols=[0,1])
-    k_pk_flux = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/flux_power_3D_k_Mpc_pow_fourier_75_Mpc_h.npy')
+    k_pk_dark_matter = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/PK-DM-snap_064') #,usecols=[0,1])
+    k_pk_flux = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power.npz')
     box_size = 75.
     hubble = 0.70399999999999996
 
-    k_mod = [k_pk_linear[:,0],k_pk_dark_matter[:,0] * 2. * mh.pi / box_size,k_pk_flux[0] / hubble]
-    power = [k_pk_linear[:,1],k_pk_dark_matter[:,1] * (box_size**3),k_pk_flux[1] * (box_size**3)]
+    k_mod = [k_pk_linear[:,0],k_pk_dark_matter[:,0] * 2. * mh.pi / box_size,k_pk_flux['arr_1'][:,0] / hubble]
+    power = [k_pk_linear[:,1],k_pk_dark_matter[:,1] * (box_size**3),k_pk_flux['arr_0'][:,0] * (box_size**3)]
     plot_linear_flux_power_3D(k_mod, power, f_name)
