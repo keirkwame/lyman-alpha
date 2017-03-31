@@ -199,14 +199,14 @@ if __name__ == "__main__":
     k_bin_edges[-2] = k_max #HACK TO FIX BINNING OF NYQUIST FREQUENCY
     #-1.229308735891473,1.185343150524040,301)) #-1.23,1.19,16)) #-0.75,1.52,16 #-1.23,1.52,16) - 0) #3) #1/Mpc #TEST ADDING UNITS!
     mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)'''
-    n_bins_mu = 1
+    '''n_bins_mu = 1
     n_bins_k = 15
     k_min = np.min(k_box[k_box > 0. / u.Mpc])
     k_max = np.max(k_box)
     k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_bins_k - 1))) / u.Mpc
     k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_bins_k + 1)) / u.Mpc
     k_bin_edges[-2] = k_max
-    mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)
+    mu_bin_edges = np.linspace(0., 1., n_bins_mu + 1)'''
 
     #Add Voigt profiles
     '''n_voigt = 6250 #1250
@@ -218,10 +218,10 @@ if __name__ == "__main__":
     voigt_only = voigt_box - simu_box'''
 
     #Estimate power spectra
-    fourier_instance = FourierEstimator3D(simu_box)
+    '''fourier_instance = FourierEstimator3D(simu_box)
     power_binned_k_mu, k_binned_2D = fourier_instance.get_flux_power_3D_two_coords_hist_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, bin_coord2=False, count=False, std_err=False, norm=norm)
     power_3D_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/flux_power_3D_k_Mpc_pow_fourier_75_Mpc_h_750_10.npy'
-    np.save(power_3D_fname,np.vstack((k_binned_2D[:,0],power_binned_k_mu[:,0])))
+    np.save(power_3D_fname,np.vstack((k_binned_2D[:,0],power_binned_k_mu[:,0])))'''
 
     #Estimate 1D power spectra
     '''k_z_mod = box_instance_with_DLA.k_z_mod()
