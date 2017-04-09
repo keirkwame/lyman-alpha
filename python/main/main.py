@@ -131,7 +131,7 @@ if __name__ == "__main__":
     simu_box,k_box,mu_box,box_instance_with_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
 
     #Column density distribution
-    '''max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
+    max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
 
     #Masks
     mask_large_dla = max_col_dens_100kms > 1.e+21 / (u.cm * u.cm)
@@ -171,7 +171,7 @@ if __name__ == "__main__":
 
     #Saving power spectra
     power_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    np.save(power_fname,np.vstack((k_z_mod.value,power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))'''
+    np.save(power_fname,np.vstack((k_z_mod.value,power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))
 
     #Template fit
     '''def hcd_model(k_z_mod, a, b, c):
