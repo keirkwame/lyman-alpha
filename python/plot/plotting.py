@@ -2,9 +2,51 @@ import math as mh
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tic
+import astropy.units as u
 import distinct_colours_py3 as dc
 
 from parametric_fit import *
+from utils import *
+
+def make_plot_voigt_power_spectrum(f_name):
+    spectrum_length = 9200 * u.km / u.s
+    velocity_bin_width = 2.5 * u.km / u.s
+    col_den = [1.e+19, 1.e+20, 10.**(21.)] / (u.cm ** 2)
+    sigma = [14., 14., 14.] * u.km / u.s
+    gamma = [14., 14., 14.] * u.km / u.s
+    amp = [10., 100., 1000.]
+    mean_flux = 0.68 #CHECK!!!
+    n_curves = 3
+
+    optical_depth = [None] * n_curves
+
+    power_spectra = [None] * n_curves
+    for i in range(n_curves):
+        power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples = voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i], sigma=sigma[i], gamma=gamma[i], amp=amp[i])
+        power_spectra[i] = power_spectra[i][1:] * k_samples[1:] / mh.pi
+    k_samples_list = [k_samples[1:],] * n_curves
+
+    plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name)
+
+    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples
+
+def plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name):
+    line_labels = ['19', '20', '21'] #[r'$\tau_0 = 10$',r'$\tau_0 = 100$',r'$\tau_0 = 1000$']
+    line_colours = ['black'] * 3
+    line_styles = ['-', ':', '--']
+    x_label = r'$k_{||}$ ($\mathrm{s}\,\mathrm{km}^{-1}$)'
+    y_label = r'$P^\mathrm{1D} k_{||} / \pi$'
+    x_log_scale = True
+    y_log_scale = True
+
+    plot_instance = Plot()
+    fig, ax = plot_instance.plot_lines(k_samples_list, power_spectra, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles)
+    fig.subplots_adjust(right=0.97)
+    ax.set_xlim([6.e-4, 1.e-1])
+    #ax.set_ylim([1.e-3, 1.e+0])
+    ax.legend(frameon=False, fontsize=13.0) #, loc='upper right')
+    plt.show() #savefig(f_name)
+
 
 def _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names):
     contaminant_power_1D_z_2_00 = np.load(contaminant_power_1D_f_names[0])[:, 1:]
@@ -287,7 +329,7 @@ class Plot():
         return fig, ax
 
 if __name__ == "__main__":
-    contaminant_power_ratios_1D_save_f_names = [None] * 4
+    '''contaminant_power_ratios_1D_save_f_names = [None] * 4
     contaminant_power_ratios_1D_save_f_names[0] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_00.pdf'
     contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44.pdf'
     contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49.pdf'
@@ -298,6 +340,8 @@ if __name__ == "__main__":
     contaminant_power_1D_f_names[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44.npy'
     contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
     contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
+    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)'''
 
     #make_plot_linear_flux_power_3D()
+
+    vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum_col_den_more_damp.png')

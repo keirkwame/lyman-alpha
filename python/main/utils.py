@@ -7,6 +7,7 @@ import scipy.integrate as spi
 import scipy.special as sps
 import copy as cp
 import astropy.units as u
+import astropy.constants as c
 import spectra as sa
 import griddedspectra as gs
 import randspectra as rs
@@ -80,6 +81,40 @@ def voigt(x, sigma, gamma, x0):
 
 def voigt_amplified(x, sigma, gamma, amp, x0):
     return (amp * voigt(x, sigma, gamma, x0)) / voigt(x0, sigma, gamma, x0)
+
+def full_voigt_optical_depth(velocity_samples, column_density, central_velocity, central_wavelength = 1215.67 * u.Angstrom): #lambda_0 for Ly-a forest
+    gas_temperature = 1.e+4 * u.K #CHECK!!!
+    transition_wavelength = 1215.67 * u.Angstrom #Ly-a
+    ion_mass = c.m_p #Ionised hydrogen - Ly-a
+    oscillator_strength = 0.416 #Ly-a
+    damping_constant = 6.265 * (10 ** 8) * u.Hz #1.e-8 * u.Hz #Not exact
+
+    wavelength_samples = central_wavelength * (1 + ((velocity_samples - central_velocity) / c.c))
+
+    del_lambda_D = transition_wavelength * mh.sqrt(2. * c.k_B * gas_temperature / ion_mass / (c.c ** 2))
+    x = (wavelength_samples - central_wavelength) / del_lambda_D
+    y = (transition_wavelength ** 2) * damping_constant / 4. / mh.pi / c.c / del_lambda_D
+    z = x + (y * 1.j)
+    u_x_y = np.real(sps.wofz(z.value))
+    atomic_absorption_coeff_numer = mh.sqrt(mh.pi) * (c.e.gauss ** 2) * oscillator_strength * (transition_wavelength ** 2) * u_x_y
+    atomic_absorption_coeff_denom = c.m_e * (c.c ** 2) * del_lambda_D #* (1. * u.F / u.m) #c.eps0
+    atomic_absorption_coeff = atomic_absorption_coeff_numer / atomic_absorption_coeff_denom
+    optical_depth = (column_density * atomic_absorption_coeff).to(u.dimensionless_unscaled)
+
+    return optical_depth, del_lambda_D, z, wavelength_samples
+
+def voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=None, sigma=None, gamma=None, amp=None):
+    n_velocity_samples = spectrum_length / velocity_bin_width
+    velocity_samples = np.arange(-1 * n_velocity_samples / 2, n_velocity_samples / 2 + 1) * velocity_bin_width
+    if column_density is not None:
+        optical_depth, del_lambda_D, z, wavelength_samples = full_voigt_optical_depth(velocity_samples, column_density, 0. * u.km / u.s)
+    else:
+        optical_depth = voigt_amplified(velocity_samples, sigma, gamma, amp, 0. * u.km / u.s)
+    flux = np.exp(-1. * optical_depth.value)
+    delta_flux = flux / mean_flux - 1.
+    delta_flux_FT = np.fft.rfft(delta_flux) / delta_flux.shape[0]
+    k_samples = np.fft.rfftfreq(delta_flux.shape[0], d = velocity_bin_width) * 2. * mh.pi
+    return (np.real(delta_flux_FT)**2 + np.imag(delta_flux_FT)**2) * spectrum_length, k_samples, velocity_samples, optical_depth, del_lambda_D, z, wavelength_samples
 
 def _set_real_values_in_hermitian_box(box,x,y,z):
     box[0, 0, 0] = np.real(box[0, 0, 0]) * mh.sqrt(2.)  # Force mean mode to be real - PROBS NEED TO * SQRT(2)
