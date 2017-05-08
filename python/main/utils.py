@@ -86,7 +86,7 @@ def full_voigt_optical_depth(velocity_samples, column_density, central_velocity,
     gas_temperature = 1.e+4 * u.K #CHECK!!!
     transition_wavelength = 1215.67 * u.Angstrom #Ly-a
     ion_mass = c.m_p #Ionised hydrogen - Ly-a
-    oscillator_strength = 0.416 #Ly-a
+    oscillator_strength = 0.4164 #Ly-a
     damping_constant = 6.265 * (10 ** 8) * u.Hz #1.e-8 * u.Hz #Not exact
 
     wavelength_samples = central_wavelength * (1 + ((velocity_samples - central_velocity) / c.c))
