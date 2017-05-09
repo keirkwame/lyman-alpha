@@ -175,6 +175,7 @@ def plot_contaminant_power_absolute_1D(k_z_mod,power_absolute,f_name):
     fig, ax = plot_instance.plot_lines(k_z_mod_list, power_absolute, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles)
     fig.subplots_adjust(right=0.97)
     ax.set_xlim([6.e-4, 1.e-1])
+    ax.axvline(x=1.e-3, color='black', ls=':')
     ax.plot([], label=r'$z = 2.00$', color='gray', ls='-')
     ax.plot([], label=r'$z = 4.43$', color='gray', ls='--')
     ax.legend(frameon=False, fontsize=13.0, ncol=2) #, loc='upper right')
@@ -195,6 +196,7 @@ def plot_contaminant_power_absolute_redshift_evolution_1D(k_z_mod,power_absolute
     fig, ax = plot_instance.plot_lines(k_z_mod_list, power_absolute, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles)
     fig.subplots_adjust(right=0.97)
     ax.set_xlim([6.e-4, 1.e-1])
+    ax.axvline(x=1.e-3, color='black', ls=':')
     ax.plot([], label=r'$z = 2.00$', color='gray', ls='-')
     ax.plot([], label=r'$z = 2.44$', color='gray', ls=':')
     ax.plot([], label=r'$z = 3.49$', color='gray', ls='-.')
@@ -283,6 +285,7 @@ def plot_contaminant_power_ratios_1D(k_z_mod,power_ratios,f_name):
     fig.subplots_adjust(right=0.97)
     ax.set_xlim([6.e-4, 1.e-1])
     ax.axhline(y=1.0, color='black', ls=':')
+    ax.axvline(x=1.e-3, color='black', ls=':')
     ax.plot([], label=r'$z = 2.00$', color='gray', ls='-') #:')
     #ax.plot([], label=r'$z = 2.44$', color='black', ls='-')
     #ax.plot([], label=r'$z = 3.49$', color='black', ls='--')
@@ -343,14 +346,17 @@ if __name__ == "__main__":
     contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44.pdf'
     contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49.pdf'
     contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_4_43.pdf'
+    '''
+
+    f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_half.pdf'
 
     contaminant_power_1D_f_names = [None] * 4
-    contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
+    contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00_half.npy'
     contaminant_power_1D_f_names[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44.npy'
     contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
     contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)'''
+    #make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
+    make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names)
 
     #make_plot_linear_flux_power_3D()
-
-    vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
+    #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
