@@ -21,12 +21,14 @@ if __name__ == "__main__":
 
     undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
 
+    #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
+
     undodged_spectra_ins.convert_fourier_units_to_distance = True
-    spectra_box = undodged_spectra_ins.skewers_realisation() #_hydrogen_overdensity(ion = -1)
+    spectra_box = undodged_spectra_ins.skewers_realisation() #mean_flux_specified=0.67573418185771716) #0.675940542622) #0.67573418185771716) #_hydrogen_overdensity(ion = -1)
     k_box = undodged_spectra_ins.k_box()
     mu_box = undodged_spectra_ins.mu_box()
 
-    n_mu_bins = 4
+    n_mu_bins = 20
     n_k_bins = 15
     k_min = np.min(k_box[k_box > 0. / u.Mpc])
     k_max = np.max(k_box)
@@ -36,4 +38,7 @@ if __name__ == "__main__":
     mu_bin_edges = np.linspace(0., 1., n_mu_bins + 1)
 
     fourier_estimator_instance = fou.FourierEstimator3D(spectra_box)
+    #power,df_hat = fourier_estimator_instance.get_flux_power_3D()
     power_binned, k_binned, bin_counts = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
+
+    np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_20_15.npz',power_binned,k_binned,bin_counts) #,model_power_binned)'''
