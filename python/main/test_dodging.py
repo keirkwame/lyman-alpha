@@ -12,12 +12,12 @@ if __name__ == "__main__":
     #Input parameters
     box_size = {'x': 75. * u.Mpc, 'y': 75. * u.Mpc, 'z': 75. * u.Mpc} # = 75 Mpc / h
     n_samp = {'x': 301, 'y': 301, 'z': 301}
-    n_samp_sub_sampled = {'x': 301, 'y': 301, 'z': 301}
-    sub_sampling_rate = 1
-    redshift = 2.444
+    n_samp_sub_sampled = {'x': 301, 'y': 301, 'z': 301} #WILL BE LESS!!!
+    sub_sampling_rate = 1 #WILL BE MORE!!!
+    redshift = 2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
     omega_m = 0.2726
-    n_mu_bins = 8
+    n_mu_bins = 4
     n_k_bins = 15
 
     #Input anisotropic functional form
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     #Gaussian boxes
     test_gaussian_box = test_gaussian_ins.anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
     test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,::sub_sampling_rate,:]
-    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,::sub_sampling_rate,:]
+    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,::sub_sampling_rate,:] #WILL ADD COFM!!!
 
     #Fourier estimator instances
     fourier_estimator_instance = fou.FourierEstimator3D(test_gaussian_box_orig)
