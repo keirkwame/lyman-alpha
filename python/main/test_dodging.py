@@ -8,11 +8,12 @@ import fourier_estimators as fou
 
 if __name__ == "__main__":
     model_cosmology_filename = sys.argv[1]
+    save_filename = sys.argv[2]
 
     #Input parameters
-    box_size = {'x': 75. * u.Mpc, 'y': 75. * u.Mpc, 'z': 75. * u.Mpc} # = 75 Mpc / h
-    n_samp = {'x': 301, 'y': 301, 'z': 301}
-    n_samp_sub_sampled = {'x': 301, 'y': 301, 'z': 301} #WILL BE LESS!!!
+    box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 106.5 * u.Mpc} # = 75 Mpc / h
+    n_samp = {'x': 751, 'y': 751, 'z': 751}
+    n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 751}
     sub_sampling_rate = 1 #WILL BE MORE!!!
     redshift = 2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
@@ -55,3 +56,4 @@ if __name__ == "__main__":
     power_bin,k_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
     power_bin_dodged = fourier_estimator_instance_dodged.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord1=False,bin_coord2=False,count=False,std_err=False)
     norm_fac = box_size['x'] * box_size['y'] * box_size['z']
+    np.savez(save_filename, power_bin, k_bin, bin_count, power_bin_dodged)
