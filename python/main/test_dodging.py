@@ -8,9 +8,8 @@ import fourier_estimators as fou
 
 if __name__ == "__main__":
     model_cosmology_filename = sys.argv[1]
-    cofm_original_filename = sys.argv[2]
-    cofm_difference_filename = sys.argv[3]
-    save_filename = sys.argv[4]
+    cofm_difference_filename = sys.argv[2]
+    save_filename = sys.argv[3]
 
     #Input parameters
     box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 10.65 * u.Mpc} # = 75 Mpc / h
@@ -53,17 +52,15 @@ if __name__ == "__main__":
     np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy',test_gaussian_box)'''
     test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy')
 
-    cofm_original = (np.load(cofm_original_filename) / 10.).astype(np.int)
-    cofm_difference = (np.load(cofm_difference_filename) / 10.).astype(np.int)
-    cofm_dodged = cofm_original[:,1:]
-    cofm_dodged[:,0] = cofm_dodged[:,0] + cofm_difference
+    cofm_difference = ((np.load(cofm_difference_filename) / 10.).astype(np.int)).reshape(750,750)
 
-    test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,:,:].reshape(n_samp_subsampled['x'] * n_samp_subsampled['y'], -1)
-    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,:,:].reshape(n_samp_subsampled['x'] * n_samp_subsampled['y'], -1) #Flattened #cofm_dodged].reshape(n_samp_subsampled['x'], n_samp_subsampled['y'], -1)
+    test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,:,:]
+    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,:,:]
 
     for i in range(cofm_difference.shape[0]):
-        if cofm_difference[i] > 0:
-            test_gaussian_dodged[i,:] = test_gaussian
+        for j in range(cofm_difference.shape[1]):
+            if cofm_difference[i,j] > 0:
+                test_gaussian_box_dodged[i,j,:] = test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j], j * sub_sampling_rate, :]
 
     #Fourier estimator instances
     fourier_estimator_instance = fou.FourierEstimator3D(test_gaussian_box_orig)
