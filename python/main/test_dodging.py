@@ -8,13 +8,15 @@ import fourier_estimators as fou
 
 if __name__ == "__main__":
     model_cosmology_filename = sys.argv[1]
-    save_filename = sys.argv[2]
+    cofm_original_filename = sys.argv[2]
+    cofm_difference_filename = sys.argv[3]
+    save_filename = sys.argv[4]
 
     #Input parameters
-    box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 106.5 * u.Mpc} # = 75 Mpc / h
-    n_samp = {'x': 751, 'y': 751, 'z': 751}
-    n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 751}
-    sub_sampling_rate = 1 #WILL BE MORE!!!
+    box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 10.65 * u.Mpc} # = 75 Mpc / h
+    n_samp = {'x': 7501, 'y': 751, 'z': 76} #COULD PROBABLY DO FULL BOX
+    n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 76}
+    sub_sampling_rate = 10
     redshift = 2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
     omega_m = 0.2726
@@ -31,6 +33,9 @@ if __name__ == "__main__":
     test_gaussian_ins = box.GaussianBox(box_size, n_samp, redshift, H0, omega_m)
     test_gaussian_ins.convert_fourier_units_to_distance = True
 
+    '''k_box = test_gaussian_ins.k_box()
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/k_box_7501_751_751.npy',k_box.value)'''
+
     #Co-ordinate boxes
     k_box = test_gaussian_ins_sub_sampled.k_box()
     mu_box = test_gaussian_ins_sub_sampled.mu_box()
@@ -44,9 +49,21 @@ if __name__ == "__main__":
     mu_bin_edges = np.linspace(0., 1., n_mu_bins + 1)
 
     #Gaussian boxes
-    test_gaussian_box = test_gaussian_ins.anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
-    test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,::sub_sampling_rate,:]
-    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,::sub_sampling_rate,:] #WILL ADD COFM!!!
+    '''test_gaussian_box = test_gaussian_ins.anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy',test_gaussian_box)'''
+    test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy')
+
+    cofm_original = (np.load(cofm_original_filename) / 10.).astype(np.int)
+    cofm_difference = (np.load(cofm_difference_filename) / 10.).astype(np.int)
+    cofm_dodged = cofm_original[:,1:]
+    cofm_dodged[:,0] = cofm_dodged[:,0] + cofm_difference
+
+    test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,:,:].reshape(n_samp_subsampled['x'] * n_samp_subsampled['y'], -1)
+    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,:,:].reshape(n_samp_subsampled['x'] * n_samp_subsampled['y'], -1) #Flattened #cofm_dodged].reshape(n_samp_subsampled['x'], n_samp_subsampled['y'], -1)
+
+    for i in range(cofm_difference.shape[0]):
+        if cofm_difference[i] > 0:
+            test_gaussian_dodged[i,:] = test_gaussian
 
     #Fourier estimator instances
     fourier_estimator_instance = fou.FourierEstimator3D(test_gaussian_box_orig)
