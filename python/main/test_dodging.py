@@ -13,14 +13,14 @@ if __name__ == "__main__":
 
     #Input parameters
     box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 10.65 * u.Mpc} # = 75 Mpc / h
-    n_samp = {'x': 7501, 'y': 751, 'z': 76} #COULD PROBABLY DO FULL BOX
+    n_samp = {'x': 7501, 'y': 751, 'z': 76}
     n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 76}
     sub_sampling_rate = 10
     redshift = 2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
     omega_m = 0.2726
-    n_mu_bins = 4
-    n_k_bins = 15
+    n_mu_bins = 40
+    n_k_bins = 1500
 
     #Input anisotropic functional form
     def mu_coefficients(k_para, k_perp):
@@ -53,6 +53,7 @@ if __name__ == "__main__":
     test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy')
 
     cofm_difference = ((np.load(cofm_difference_filename) / 10.).astype(np.int)).reshape(750,750)
+    print(cofm_difference)
 
     test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,:,:]
     test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,:,:]
@@ -60,7 +61,8 @@ if __name__ == "__main__":
     for i in range(cofm_difference.shape[0]):
         for j in range(cofm_difference.shape[1]):
             if cofm_difference[i,j] > 0:
-                test_gaussian_box_dodged[i,j,:] = test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j], j * sub_sampling_rate, :]
+                test_gaussian_box_dodged[i,j,:] = test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j], j, :]
+                print(i, j, i * sub_sampling_rate + cofm_difference[i,j])
 
     #Fourier estimator instances
     fourier_estimator_instance = fou.FourierEstimator3D(test_gaussian_box_orig)
@@ -69,5 +71,9 @@ if __name__ == "__main__":
     #Power spectra
     power_bin,k_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
     power_bin_dodged = fourier_estimator_instance_dodged.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord1=False,bin_coord2=False,count=False,std_err=False)
+
+    power_unbinned = fourier_estimator_instance.get_flux_power_3D()
+    power_unbinned_dodged = fourier_estimator_instance_dodged.get_flux_power_3D()
+
     norm_fac = box_size['x'] * box_size['y'] * box_size['z']
-    np.savez(save_filename, power_bin, k_bin, bin_count, power_bin_dodged)
+    np.savez(save_filename, power_bin, k_bin, bin_count, power_bin_dodged, power_unbinned, k_box.value, mu_box.value, power_unbinned_dodged)
