@@ -1,5 +1,6 @@
 import numpy as np
 import astropy.units as u
+import copy as cp
 import math as mh
 import sys
 
@@ -19,8 +20,8 @@ if __name__ == "__main__":
     redshift = 2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
     omega_m = 0.2726
-    n_mu_bins = 40
-    n_k_bins = 1500
+    n_mu_bins = 4
+    n_k_bins = 15
 
     #Input anisotropic functional form
     def mu_coefficients(k_para, k_perp):
@@ -50,19 +51,20 @@ if __name__ == "__main__":
     #Gaussian boxes
     '''test_gaussian_box = test_gaussian_ins.anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
     np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy',test_gaussian_box)'''
+    #test_gaussian_box = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy') #* 1.e+8
     test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy')
 
     cofm_difference = ((np.load(cofm_difference_filename) / 10.).astype(np.int)).reshape(750,750)
     print(cofm_difference)
 
-    test_gaussian_box_orig = test_gaussian_box[::sub_sampling_rate,:,:]
-    test_gaussian_box_dodged = test_gaussian_box[::sub_sampling_rate,:,:]
+    test_gaussian_box_orig = cp.deepcopy(test_gaussian_box)[::sub_sampling_rate,:,:]
+    test_gaussian_box_dodged = cp.deepcopy(test_gaussian_box)[::sub_sampling_rate,:,:]
 
     for i in range(cofm_difference.shape[0]):
         for j in range(cofm_difference.shape[1]):
             if cofm_difference[i,j] > 0:
                 test_gaussian_box_dodged[i,j,:] = test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j], j, :]
-                print(i, j, i * sub_sampling_rate + cofm_difference[i,j])
+                print(i, j, i * sub_sampling_rate, i * sub_sampling_rate + cofm_difference[i,j], test_gaussian_box[i * sub_sampling_rate, j, 0], test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j], j, 0], test_gaussian_box[i * sub_sampling_rate + cofm_difference[i,j] + 1, j, 0])
 
     #Fourier estimator instances
     fourier_estimator_instance = fou.FourierEstimator3D(test_gaussian_box_orig)
@@ -72,8 +74,8 @@ if __name__ == "__main__":
     power_bin,k_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
     power_bin_dodged = fourier_estimator_instance_dodged.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord1=False,bin_coord2=False,count=False,std_err=False)
 
-    power_unbinned = fourier_estimator_instance.get_flux_power_3D()
-    power_unbinned_dodged = fourier_estimator_instance_dodged.get_flux_power_3D()
+    '''power_unbinned = fourier_estimator_instance.get_flux_power_3D()
+    power_unbinned_dodged = fourier_estimator_instance_dodged.get_flux_power_3D()'''
 
     norm_fac = box_size['x'] * box_size['y'] * box_size['z']
-    np.savez(save_filename, power_bin, k_bin, bin_count, power_bin_dodged, power_unbinned, k_box.value, mu_box.value, power_unbinned_dodged)
+    np.savez(save_filename, power_bin, k_bin, bin_count, power_bin_dodged) #, power_unbinned, k_box.value, mu_box.value, power_unbinned_dodged)
