@@ -138,10 +138,28 @@ def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminan
         contaminant_power_ratios_1D[12 + i] = contaminant_power_ratios_1D_z_4_43[i]
 
     #Template fitting
-    for i in range(16):
+    '''for i in range(16):
         param_array = fit_parametric_ratio_models(k_z_mod[int(i / 4)],contaminant_power_ratios_1D[i])
         print(param_array)
-        contaminant_power_ratios_1D[i+16] = parametric_ratio_model(k_z_mod[int(i / 4)],param_array[0],param_array[1],param_array[2])
+        contaminant_power_ratios_1D[i+16] = parametric_ratio_model(k_z_mod[int(i / 4)],param_array[0],param_array[1],param_array[2])'''
+
+    initial_param_values = np.zeros((4,6))
+    initial_param_values[0] = np.array([2.2,0.,37.7,0.,0.99,0.]) #,-3.6]) #,0.]) #np.array([2.2, 37.7, 0.99, 0., 0.11]) #np.array([2.2,0.,37.7,0.,0.99,0.])
+    initial_param_values[1] = np.array([1.5, 0., 81.0, 0., 0.86, 0.]) #, -3.6]) #, 0.]) #np.array([1.5, 81.0, 0.86, 0., 0.11]) #np.array([1.5, 0., 81.0, 0., 0.86, 0.])
+    initial_param_values[2] = np.array([1.1, 0., 162.2, 0., 0.65, 0.]) #, -3.6]) #, 0.]) #np.array([1.1, 162.2, 0.65, 0., 0.11]) #np.array([1.1, 0., 162.2, 0., 0.65, 0.])
+    initial_param_values[3] = np.array([0.87, 0., 422.0, 0., 0.33, 0.]) #, -3.6]) #, 0.]) #np.array([0.87, 422.0, 0.33, 0., 0.11]) #np.array([0.87, 0., 422.0, 0., 0.33, 0.])
+    #initial_param_values = [None] * 4
+    for i in range(4):
+        k_z_mod_expanded = np.concatenate((k_z_mod[0], k_z_mod[1], k_z_mod[2], k_z_mod[3]))
+        redshift_expanded = np.array(([2.00] * k_z_mod[0].shape[0]) + ([2.44] * k_z_mod[1].shape[0]) + ([3.49] * k_z_mod[2].shape[0]) + ([4.43] * k_z_mod[3].shape[0]))
+        data_expanded = np.concatenate((contaminant_power_ratios_1D[i], contaminant_power_ratios_1D[4 + i], contaminant_power_ratios_1D[8 + i], contaminant_power_ratios_1D[12 + i]))
+        param_array = fit_parametric_ratio_redshift_evolution_models(k_z_mod_expanded, redshift_expanded, data_expanded, initial_param_values = initial_param_values[i])
+        print(param_array)
+        model_evaluation = parametric_ratio_growth_factor_model((k_z_mod_expanded,redshift_expanded),param_array[0],param_array[1],param_array[2],param_array[3],param_array[4],param_array[5]) #,param_array[6])
+        contaminant_power_ratios_1D[16 + i] = model_evaluation[:k_z_mod[0].shape[0]]
+        contaminant_power_ratios_1D[16 + 4 + i] = model_evaluation[k_z_mod[0].shape[0]:k_z_mod[0].shape[0]+k_z_mod[1].shape[0]]
+        contaminant_power_ratios_1D[16 + 8 + i] = model_evaluation[k_z_mod[0].shape[0]+k_z_mod[1].shape[0]:-1*k_z_mod[3].shape[0]]
+        contaminant_power_ratios_1D[16 + 12 + i] = model_evaluation[-1*k_z_mod[3].shape[0]:]
 
     plot_contaminant_power_ratios_1D_with_templates(k_z_mod, contaminant_power_ratios_1D, f_name_list)
 
@@ -341,22 +359,21 @@ class Plot():
         return fig, ax
 
 if __name__ == "__main__":
-    '''contaminant_power_ratios_1D_save_f_names = [None] * 4
-    contaminant_power_ratios_1D_save_f_names[0] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_00.pdf'
-    contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44.pdf'
-    contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49.pdf'
-    contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_4_43.pdf'
-    '''
+    contaminant_power_ratios_1D_save_f_names = [None] * 4
+    contaminant_power_ratios_1D_save_f_names[0] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_00_growth_fac.pdf'
+    contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44_growth_fac.pdf'
+    contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49_growth_fac.pdf'
+    contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_4_43_growth_fac.pdf'
 
-    f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_half.pdf'
+    #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_half.pdf'
 
     contaminant_power_1D_f_names = [None] * 4
-    contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00_half.npy'
+    contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
     contaminant_power_1D_f_names[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44.npy'
     contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
     contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    #make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
-    make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names)
+    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
+    #make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names)
 
     #make_plot_linear_flux_power_3D()
     #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
