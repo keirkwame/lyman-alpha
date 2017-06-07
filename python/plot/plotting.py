@@ -60,25 +60,26 @@ def plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name):
 def _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names):
     contaminant_power_1D_z_2_00 = np.load(contaminant_power_1D_f_names[0])[:, 1:]
     contaminant_power_1D_z_2_44 = np.load(contaminant_power_1D_f_names[1])[:, 1:]
-    contaminant_power_1D_z_3_49 = np.load(contaminant_power_1D_f_names[2])[:, 1:]
-    contaminant_power_1D_z_4_43 = np.load(contaminant_power_1D_f_names[3])[:, 1:]
+    contaminant_power_1D_z_3_01 = np.load(contaminant_power_1D_f_names[2])[:, 1:]
+    contaminant_power_1D_z_3_49 = np.load(contaminant_power_1D_f_names[3])[:, 1:]
+    contaminant_power_1D_z_4_43 = np.load(contaminant_power_1D_f_names[4])[:, 1:]
 
-    return contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43
+    return contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_01, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43
 
-def _get_k_z_mod(contaminant_power_1D_z_2_00,contaminant_power_1D_z_2_44,contaminant_power_1D_z_3_49,contaminant_power_1D_z_4_43):
-    return [contaminant_power_1D_z_2_00[0], contaminant_power_1D_z_2_44[0], contaminant_power_1D_z_3_49[0],contaminant_power_1D_z_4_43[0]]
+def _get_k_z_mod(contaminant_power_1D_z_2_00,contaminant_power_1D_z_2_44,contaminant_power_1D_z_3_01,contaminant_power_1D_z_3_49,contaminant_power_1D_z_4_43):
+    return [contaminant_power_1D_z_2_00[0], contaminant_power_1D_z_2_44[0], contaminant_power_1D_z_3_01[0], contaminant_power_1D_z_3_49[0],contaminant_power_1D_z_4_43[0]]
 
 def make_plot_contaminant_power_absolute_1D(f_name, contaminant_power_1D_f_names):
-    contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43 = _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names)
-    k_z_mod = _get_k_z_mod(contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43)
-    k_z_mod = [k_z_mod[0],k_z_mod[-1]] #Just want minimum and maximum redshift slices
+    contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_01, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43 = _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names)
+    k_z_mod = _get_k_z_mod(contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43)
+    k_z_mod = k_z_mod[0] #,k_z_mod[-1]] #Just want minimum and maximum redshift slices
 
     box_size_z_2_00 = 7111 #km / s
-    box_size_z_4_43 = 9199 #km / s
-    contaminant_power_absolute_1D = [None] * 12
+    #box_size_z_4_43 = 9199 #km / s
+    contaminant_power_absolute_1D = [None] * 6 #12
     for i in range(6):
-        contaminant_power_absolute_1D[i] = contaminant_power_1D_z_2_00[i+1] * box_size_z_2_00 * k_z_mod[0] / mh.pi #First row is k_z_mod
-        contaminant_power_absolute_1D[6 + i] = contaminant_power_1D_z_4_43[i+1] * box_size_z_4_43 * k_z_mod[1] / mh.pi
+        contaminant_power_absolute_1D[i] = contaminant_power_1D_z_2_00[i+1] * box_size_z_2_00 * k_z_mod / mh.pi #First row is k_z_mod
+        #contaminant_power_absolute_1D[6 + i] = contaminant_power_1D_z_4_43[i+1] * box_size_z_4_43 * k_z_mod[1] / mh.pi
 
     plot_contaminant_power_absolute_1D(k_z_mod, contaminant_power_absolute_1D, f_name)
 
@@ -103,9 +104,10 @@ def make_plot_contaminant_power_absolute_redshift_evolution_1D(f_name, contamina
 def _get_contaminant_power_ratios_1D(contaminant_power_1D_list):
     contaminant_power_ratios_1D_z_2_00 = contaminant_power_1D_list[0][3:, :] / contaminant_power_1D_list[0][2, :][np.newaxis, :]
     contaminant_power_ratios_1D_z_2_44 = contaminant_power_1D_list[1][3:, :] / contaminant_power_1D_list[1][2, :][np.newaxis, :]
-    contaminant_power_ratios_1D_z_3_49 = contaminant_power_1D_list[2][3:, :] / contaminant_power_1D_list[2][2, :][np.newaxis, :]
-    contaminant_power_ratios_1D_z_4_43 = contaminant_power_1D_list[3][3:, :] / contaminant_power_1D_list[3][2, :][np.newaxis, :]
-    return contaminant_power_ratios_1D_z_2_00,contaminant_power_ratios_1D_z_2_44,contaminant_power_ratios_1D_z_3_49,contaminant_power_ratios_1D_z_4_43
+    contaminant_power_ratios_1D_z_3_01 = contaminant_power_1D_list[2][3:, :] / contaminant_power_1D_list[2][2, :][np.newaxis, :]
+    contaminant_power_ratios_1D_z_3_49 = contaminant_power_1D_list[3][3:, :] / contaminant_power_1D_list[3][2, :][np.newaxis, :]
+    contaminant_power_ratios_1D_z_4_43 = contaminant_power_1D_list[4][3:, :] / contaminant_power_1D_list[4][2, :][np.newaxis, :]
+    return contaminant_power_ratios_1D_z_2_00,contaminant_power_ratios_1D_z_2_44,contaminant_power_ratios_1D_z_3_01,contaminant_power_ratios_1D_z_3_49,contaminant_power_ratios_1D_z_4_43
 
 def make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names):
     #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_less_z_diff_colours.png'
@@ -125,17 +127,18 @@ def make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names):
 
 def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminant_power_1D_f_names):
     #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_less_z_diff_colours.png'
-    contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43 = _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names)
-    k_z_mod = _get_k_z_mod(contaminant_power_1D_z_2_00,contaminant_power_1D_z_2_44,contaminant_power_1D_z_3_49,contaminant_power_1D_z_4_43)
-    contaminant_power_1D_list = [contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43]
-    contaminant_power_ratios_1D_z_2_00, contaminant_power_ratios_1D_z_2_44, contaminant_power_ratios_1D_z_3_49, contaminant_power_ratios_1D_z_4_43 = _get_contaminant_power_ratios_1D(contaminant_power_1D_list)
+    contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_01, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43 = _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names)
+    k_z_mod = _get_k_z_mod(contaminant_power_1D_z_2_00,contaminant_power_1D_z_2_44,contaminant_power_1D_z_3_01,contaminant_power_1D_z_3_49,contaminant_power_1D_z_4_43)
+    contaminant_power_1D_list = [contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_01, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43]
+    contaminant_power_ratios_1D_z_2_00, contaminant_power_ratios_1D_z_2_44, contaminant_power_ratios_1D_z_3_01, contaminant_power_ratios_1D_z_3_49, contaminant_power_ratios_1D_z_4_43 = _get_contaminant_power_ratios_1D(contaminant_power_1D_list)
 
-    contaminant_power_ratios_1D = [None] * 32
+    contaminant_power_ratios_1D = [None] * 40
     for i in range(4):
         contaminant_power_ratios_1D[i] = contaminant_power_ratios_1D_z_2_00[i]
         contaminant_power_ratios_1D[4 + i] = contaminant_power_ratios_1D_z_2_44[i]
-        contaminant_power_ratios_1D[8 + i] = contaminant_power_ratios_1D_z_3_49[i]
-        contaminant_power_ratios_1D[12 + i] = contaminant_power_ratios_1D_z_4_43[i]
+        contaminant_power_ratios_1D[8 + i] = contaminant_power_ratios_1D_z_3_01[i]
+        contaminant_power_ratios_1D[12 + i] = contaminant_power_ratios_1D_z_3_49[i]
+        contaminant_power_ratios_1D[16 + i] = contaminant_power_ratios_1D_z_4_43[i]
 
     #Template fitting
     '''for i in range(16):
@@ -150,16 +153,17 @@ def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminan
     initial_param_values[3] = np.array([0.87, 0., 422.0, 0., 0.33, 0.]) #, -3.6]) #, 0.]) #np.array([0.87, 422.0, 0.33, 0., 0.11]) #np.array([0.87, 0., 422.0, 0., 0.33, 0.])
     #initial_param_values = [None] * 4
     for i in range(4):
-        k_z_mod_expanded = np.concatenate((k_z_mod[0], k_z_mod[1], k_z_mod[2], k_z_mod[3]))
-        redshift_expanded = np.array(([2.00] * k_z_mod[0].shape[0]) + ([2.44] * k_z_mod[1].shape[0]) + ([3.49] * k_z_mod[2].shape[0]) + ([4.43] * k_z_mod[3].shape[0]))
-        data_expanded = np.concatenate((contaminant_power_ratios_1D[i], contaminant_power_ratios_1D[4 + i], contaminant_power_ratios_1D[8 + i], contaminant_power_ratios_1D[12 + i]))
+        k_z_mod_expanded = np.concatenate((k_z_mod[0], k_z_mod[1], k_z_mod[2], k_z_mod[3], k_z_mod[4]))
+        redshift_expanded = np.array(([2.00] * k_z_mod[0].shape[0]) + ([2.44] * k_z_mod[1].shape[0]) + ([3.01] * k_z_mod[2].shape[0]) + ([3.49] * k_z_mod[3].shape[0]) + ([4.43] * k_z_mod[4].shape[0]))
+        data_expanded = np.concatenate((contaminant_power_ratios_1D[i], contaminant_power_ratios_1D[4 + i], contaminant_power_ratios_1D[8 + i], contaminant_power_ratios_1D[12 + i], contaminant_power_ratios_1D[16 + i]))
         param_array = fit_parametric_ratio_redshift_evolution_models(k_z_mod_expanded, redshift_expanded, data_expanded, initial_param_values = initial_param_values[i])
         print(param_array)
         model_evaluation = parametric_ratio_growth_factor_model((k_z_mod_expanded,redshift_expanded),param_array[0],param_array[1],param_array[2],param_array[3],param_array[4],param_array[5]) #,param_array[6])
-        contaminant_power_ratios_1D[16 + i] = model_evaluation[:k_z_mod[0].shape[0]]
-        contaminant_power_ratios_1D[16 + 4 + i] = model_evaluation[k_z_mod[0].shape[0]:k_z_mod[0].shape[0]+k_z_mod[1].shape[0]]
-        contaminant_power_ratios_1D[16 + 8 + i] = model_evaluation[k_z_mod[0].shape[0]+k_z_mod[1].shape[0]:-1*k_z_mod[3].shape[0]]
-        contaminant_power_ratios_1D[16 + 12 + i] = model_evaluation[-1*k_z_mod[3].shape[0]:]
+        contaminant_power_ratios_1D[20 + i] = model_evaluation[:k_z_mod[0].shape[0]]
+        contaminant_power_ratios_1D[20 + 4 + i] = model_evaluation[k_z_mod[0].shape[0]:k_z_mod[0].shape[0]+k_z_mod[1].shape[0]]
+        contaminant_power_ratios_1D[20 + 8 + i] = model_evaluation[k_z_mod[0].shape[0]+k_z_mod[1].shape[0]:(-1*k_z_mod[3].shape[0])+(-1*k_z_mod[4].shape[0])]
+        contaminant_power_ratios_1D[20 + 12 + i] = model_evaluation[(-1*k_z_mod[3].shape[0])+(-1*k_z_mod[4].shape[0]):-1*k_z_mod[4].shape[0]]
+        contaminant_power_ratios_1D[20 + 16 + i] = model_evaluation[-1*k_z_mod[4].shape[0]:]
 
     plot_contaminant_power_ratios_1D_with_templates(k_z_mod, contaminant_power_ratios_1D, f_name_list)
 
@@ -178,12 +182,12 @@ def make_plot_linear_flux_power_3D():
     plot_linear_flux_power_3D(k_mod, power, f_name)
 
 def plot_contaminant_power_absolute_1D(k_z_mod,power_absolute,f_name):
-    k_z_mod_list = ([k_z_mod[0],] * 6) + ([k_z_mod[1],] * 6)
-    line_labels = ['Total','Forest','LLS','Sub-DLA','Small DLA','Large DLA'] + ([None] * 6)
+    k_z_mod_list = [k_z_mod,] * 6 #) + ([k_z_mod[1],] * 6)
+    line_labels = ['Total','Forest','LLS','Sub-DLA','Small DLA','Large DLA'] #+ ([None] * 6)
     dis_cols = ['black'] + dc.get_distinct(5)
     dis_cols[4] = '#CCCC00'  # Dark yellow1
-    line_colours = dis_cols * 2
-    line_styles = (['-'] * 6) + (['--'] * 6)
+    line_colours = dis_cols #* 2
+    line_styles = ['-'] * 6 #) + (['--'] * 6)
     x_label = r'$k_{||}$ ($\mathrm{s}\,\mathrm{km}^{-1}$)'
     y_label = r'$P_i^\mathrm{1D} k_{||} / \pi$'
     x_log_scale = True
@@ -194,9 +198,9 @@ def plot_contaminant_power_absolute_1D(k_z_mod,power_absolute,f_name):
     fig.subplots_adjust(right=0.97)
     ax.set_xlim([6.e-4, 1.e-1])
     ax.axvline(x=1.e-3, color='black', ls=':')
-    ax.plot([], label=r'$z = 2.00$', color='gray', ls='-')
-    ax.plot([], label=r'$z = 4.43$', color='gray', ls='--')
-    ax.legend(frameon=False, fontsize=13.0, ncol=2) #, loc='upper right')
+    #ax.plot([], label=r'$z = 2.00$', color='gray', ls='-')
+    #ax.plot([], label=r'$z = 4.43$', color='gray', ls='--')
+    ax.legend(frameon=False, fontsize=13.0) #, ncol=2) #, loc='upper right')
     plt.savefig(f_name)
 
 def plot_contaminant_power_absolute_redshift_evolution_1D(k_z_mod,power_absolute,f_name):
@@ -223,67 +227,97 @@ def plot_contaminant_power_absolute_redshift_evolution_1D(k_z_mod,power_absolute
     plt.savefig(f_name)
 
 def plot_contaminant_power_ratios_1D_with_templates(k_z_mod,power_ratios,f_name_list):
-    k_z_mod_list = ([k_z_mod[0],] * 8) + ([k_z_mod[1],] * 8) + ([k_z_mod[2],] * 8) + ([k_z_mod[3],] * 8)
-    power_ratios = power_ratios[0:4] + power_ratios[16:20] + power_ratios[4:8] + power_ratios[20:24] + power_ratios[8:12] + power_ratios[24:28] + power_ratios[12:16] + power_ratios[28:32]
-    line_labels = ['LLS','Sub-DLA','Small DLA','Large DLA',None,None,None,None] * 4
+    k_z_mod_list = ([k_z_mod[0],] * 8) + ([k_z_mod[1],] * 8) + ([k_z_mod[2],] * 8) + ([k_z_mod[3],] * 8) + ([k_z_mod[4],] * 8)
+    power_ratios = power_ratios[0:4] + power_ratios[20:24] + power_ratios[4:8] + power_ratios[24:28] + power_ratios[8:12] + power_ratios[28:32] + power_ratios[12:16] + power_ratios[32:36] + power_ratios[16:20] + power_ratios[36:40]
+    line_labels = ['LLS','Sub-DLA','Small DLA','Large DLA',None,None,None,None] * 5
     dis_cols = dc.get_distinct(5)
     dis_cols[3] = '#CCCC00' #Dark yellow1
-    line_colours = [dis_cols[1],dis_cols[2],dis_cols[3],dis_cols[4]] * 8
-    line_styles = ['-','-','-','-','--','--','--','--'] * 4
+    line_colours = [dis_cols[1],dis_cols[2],dis_cols[3],dis_cols[4]] * 10
+    line_styles = ['-','-','-','-','--','--','--','--'] * 5
     x_label = r'$k_{||}$ ($\mathrm{s}\,\mathrm{km}^{-1}$)'
     y_label = r'$P_i^\mathrm{1D} / P_\mathrm{Forest}^\mathrm{1D}$'
     x_log_scale = True
     y_log_scale = True
 
+    figure, axes = plt.subplots(nrows = 5, ncols = 1, figsize = (6.4,14)) #6.4*2,12.)) #4.8*3)) #, sharex = True)
+    #axes[2,1].axis('off')
+
     plot_instance = Plot()
-    fig, ax = plot_instance.plot_lines(k_z_mod_list[0:8], power_ratios[0:8], line_labels[0:8], line_colours[0:8], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[0:8])
-    fig.subplots_adjust(right=0.97)
-    ax.set_xlim([6.e-4, 1.e-1])
-    ax.axhline(y=1.0, color='black', ls=':')
-    ax.axvline(x=1.e-3, color='black', ls=':')
-    plt.text(0.15, 0.9, r'$z = 2.00$', transform = ax.transAxes)
-    ax.plot([], label='Simulation', color='gray', ls='-') #:')
-    ax.plot([], label='Template', color='gray', ls='--') #.')
-    ax.legend(frameon=False, fontsize=13.0) #, loc='upper right')
-    plt.savefig(f_name_list[0])
+    figure, axes[0] = plot_instance.plot_lines(k_z_mod_list[0:8], power_ratios[0:8], line_labels[0:8], line_colours[0:8], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[0:8], fig=figure, ax=axes[0])
+    figure.subplots_adjust(right=0.97)
+    axes[0].set_xlim([6.e-4, 1.e-1])
+    axes[0].axhline(y=1.0, color='black', ls=':')
+    axes[0].axvline(x=1.e-3, color='black', ls=':')
+    plt.text(0.15, 0.9, r'\textbf{(a)}: $z = 2.00$', transform = axes[0].transAxes)
+    axes[0].plot([], label='Simulation', color='gray', ls='-') #:')
+    axes[0].plot([], label='Template', color='gray', ls='--') #.')
+    axes[0].legend(frameon=False, fontsize=13.0) #, loc='upper right')
+    axes[0].set_xticklabels([])
+    axes[0].set_xlabel('')
+    #plt.savefig(f_name_list[0])
 
-    fig, ax = plot_instance.plot_lines(k_z_mod_list[8:16], power_ratios[8:16], line_labels[8:16], line_colours[8:16], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[8:16])
-    fig.subplots_adjust(right=0.97)
-    ax.set_xlim([6.e-4, 1.e-1])
-    ax.axhline(y=1.0, color='black', ls=':')
-    ax.axvline(x=1.e-3, color='black', ls=':')
-    plt.text(0.15, 0.9, r'$z = 2.44$', transform=ax.transAxes)
-    ax.plot([], label='Simulation', color='gray', ls='-') #:')
-    ax.plot([], label='Template', color='gray', ls='--') #.')
-    ax.legend(frameon=False, fontsize=13.0) #, loc='upper right')
-    plt.savefig(f_name_list[1])
+    figure, axes[1] = plot_instance.plot_lines(k_z_mod_list[8:16], power_ratios[8:16], line_labels[8:16], line_colours[8:16], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[8:16], fig=figure, ax=axes[1])
+    figure.subplots_adjust(right=0.97)
+    axes[1].set_xlim([6.e-4, 1.e-1])
+    axes[1].axhline(y=1.0, color='black', ls=':')
+    axes[1].axvline(x=1.e-3, color='black', ls=':')
+    plt.text(0.15, 0.9, r'\textbf{(b)}: $z = 2.44$', transform=axes[1].transAxes)
+    axes[1].plot([], label='Simulation', color='gray', ls='-') #:')
+    axes[1].plot([], label='Template', color='gray', ls='--') #.')
+    axes[1].legend_.remove() #(frameon=False, fontsize=13.0) #, loc='upper right')
+    axes[1].set_xticklabels([])
+    axes[1].set_xlabel('')
+    #plt.savefig(f_name_list[1])
 
-    fig, ax = plot_instance.plot_lines(k_z_mod_list[16:24], power_ratios[16:24], line_labels[16:24], line_colours[16:24], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[16:24])
-    fig.subplots_adjust(right=0.97)
-    ax.set_xlim([6.e-4, 1.e-1])
-    ax.axhline(y=1.0, color='black', ls=':')
-    ax.axvline(x=1.e-3, color='black', ls=':')
-    ax.yaxis.labelpad = -26
-    plt.yticks(np.array([0.4, 0.6, 1., 2., 4.]), np.array([r'$4 \times 10^{-1}$', r'$6 \times 10^{-1}$', r'$10^0$', r'$2 \times 10^0$', r'$4 \times 10^0$']))
-    plt.text(0.15, 0.9, r'$z = 3.49$', transform=ax.transAxes)
-    ax.plot([], label='Simulation', color='gray', ls='-') #:')
-    ax.plot([], label='Template', color='gray', ls='--') #.')
-    ax.legend(frameon=False, fontsize=13.0) #, loc='upper right')
-    plt.savefig(f_name_list[2])
+    figure, axes[2] = plot_instance.plot_lines(k_z_mod_list[16:24], power_ratios[16:24], line_labels[16:24], line_colours[16:24], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[16:24], fig=figure, ax=axes[2])
+    figure.subplots_adjust(right=0.97)
+    axes[2].set_xlim([6.e-4, 1.e-1])
+    axes[2].axhline(y=1.0, color='black', ls=':')
+    axes[2].axvline(x=1.e-3, color='black', ls=':')
+    axes[2].yaxis.labelpad = -26
+    axes[2].set_yticks(np.array([0.4, 0.6, 1., 4., 6.]))
+    axes[2].set_yticklabels(np.array([r'$4 \times 10^{-1}$', r'$6 \times 10^{-1}$', r'$10^0$', r'$4 \times 10^0$', r'$6 \times 10^0$']))
+    plt.text(0.15, 0.9, r'\textbf{(c)}: $z = 3.01$', transform=axes[2].transAxes)
+    axes[2].plot([], label='Simulation', color='gray', ls='-') #:')
+    axes[2].plot([], label='Template', color='gray', ls='--') #.')
+    axes[2].legend_.remove() #(frameon=False, fontsize=13.0) #, loc='upper right')
+    axes[2].set_xticklabels([])
+    axes[2].set_xlabel('')
+    #plt.savefig(f_name_list[2])
 
-    fig, ax = plot_instance.plot_lines(k_z_mod_list[24:32], power_ratios[24:32], line_labels[24:32], line_colours[24:32], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[24:32])
-    fig.subplots_adjust(right=0.97)
-    ax.set_xlim([6.e-4, 1.e-1])
-    ax.axhline(y=1.0, color='black', ls=':')
-    ax.axvline(x=1.e-3, color='black', ls=':')
-    ax.yaxis.labelpad = -24
+    figure, axes[3] = plot_instance.plot_lines(k_z_mod_list[24:32], power_ratios[24:32], line_labels[24:32], line_colours[24:32], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[24:32], fig=figure, ax=axes[3])
+    figure.subplots_adjust(right=0.97)
+    axes[3].set_xlim([6.e-4, 1.e-1])
+    axes[3].axhline(y=1.0, color='black', ls=':')
+    axes[3].axvline(x=1.e-3, color='black', ls=':')
+    axes[3].yaxis.labelpad = -26
+    axes[3].set_yticks(np.array([0.4, 0.6, 1., 2., 4.]))
+    axes[3].set_yticklabels(np.array([r'$4 \times 10^{-1}$', r'$6 \times 10^{-1}$', r'$10^0$', r'$2 \times 10^0$', r'$4 \times 10^0$']))
     #ax.yaxis.set_major_formatter(tic.FormatStrFormatter('%.1f'))
     #ax.yaxis.set_minor_formatter(tic.FormatStrFormatter('%.1f'))
-    plt.text(0.15, 0.9, r'$z = 4.43$', transform=ax.transAxes)
-    ax.plot([], label='Simulation', color='gray', ls='-') #:')
-    ax.plot([], label='Template', color='gray', ls='--') #.')
-    ax.legend(frameon=False, fontsize=13.0, ncol=2) #, loc='upper right')
-    plt.savefig(f_name_list[3])
+    plt.text(0.15, 0.9, r'\textbf{(d)}: $z = 3.49$', transform=axes[3].transAxes)
+    axes[3].plot([], label='Simulation', color='gray', ls='-') #:')
+    axes[3].plot([], label='Template', color='gray', ls='--') #.')
+    axes[3].legend_.remove() #(frameon=False, fontsize=13.0) #, ncol=2) #, loc='upper right')
+    axes[3].set_xticklabels([])
+    axes[3].set_xlabel('')
+    #plt.savefig(f_name_list[3])
+
+    figure, axes[4] = plot_instance.plot_lines(k_z_mod_list[32:40], power_ratios[32:40], line_labels[32:40], line_colours[32:40], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[32:40], fig=figure, ax=axes[4])
+    figure.subplots_adjust(right=0.97)
+    axes[4].set_xlim([6.e-4, 1.e-1])
+    axes[4].axhline(y=1.0, color='black', ls=':')
+    axes[4].axvline(x=1.e-3, color='black', ls=':')
+    axes[4].yaxis.labelpad = -24
+    #ax.yaxis.set_major_formatter(tic.FormatStrFormatter('%.1f'))
+    #ax.yaxis.set_minor_formatter(tic.FormatStrFormatter('%.1f'))
+    plt.text(0.15, 0.9, r'\textbf{(e)}: $z = 4.43$', transform=axes[4].transAxes)
+    axes[4].plot([], label='Simulation', color='gray', ls='-') #:')
+    axes[4].plot([], label='Template', color='gray', ls='--') #.')
+    axes[4].legend_.remove() #(frameon=False, fontsize=13.0, ncol=2) #, loc='upper right')
+
+    figure.subplots_adjust(hspace = 0., left = 0.13, top = 0.99, bottom = 0.05)
+    plt.savefig(f_name_list[4])
 
 def plot_contaminant_power_ratios_1D(k_z_mod,power_ratios,f_name):
     k_z_mod_list = [k_z_mod[0],k_z_mod[0],k_z_mod[0],k_z_mod[0],k_z_mod[3],k_z_mod[3],k_z_mod[3],k_z_mod[3]] #k_z_mod[1],k_z_mod[1],k_z_mod[1],k_z_mod[1],k_z_mod[2],k_z_mod[2],k_z_mod[2],k_z_mod[2],k_z_mod[3],k_z_mod[3],k_z_mod[3],k_z_mod[3]]
@@ -339,12 +373,14 @@ class Plot():
         plt.rc('ytick.minor', width=1.5)
         #plt.rc('lines', linewidth=1.0)
 
-    def plot_lines(self, x, y, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles='default', plot_title=''):
+    def plot_lines(self, x, y, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles='default', plot_title='', fig = None, ax = None):
         n_lines = len(line_labels)
         if line_styles == 'default':
             line_styles = ['-'] * n_lines
-        fig, ax = plt.subplots(1) #, figsize=(8, 12))
+        if fig == None:
+            fig, ax = plt.subplots(1) #, figsize=(8, 12))
         for i in range(n_lines):
+            print(i)
             ax.plot(x[i], y[i], label=line_labels[i], color=line_colours[i], ls=line_styles[i])
         ax.legend(frameon=False, fontsize=15.0)
         ax.set_xlabel(x_label)
@@ -359,21 +395,23 @@ class Plot():
         return fig, ax
 
 if __name__ == "__main__":
-    contaminant_power_ratios_1D_save_f_names = [None] * 4
-    contaminant_power_ratios_1D_save_f_names[0] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_00_growth_fac.pdf'
-    contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44_growth_fac.pdf'
-    contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49_growth_fac.pdf'
-    contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_4_43_growth_fac.pdf'
+    contaminant_power_ratios_1D_save_f_names = [None] * 5
+    contaminant_power_ratios_1D_save_f_names[0] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_00_growth_fac2.pdf'
+    contaminant_power_ratios_1D_save_f_names[1] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_2_44_growth_fac2.pdf'
+    contaminant_power_ratios_1D_save_f_names[2] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_01_growth_fac2.pdf'
+    contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49_growth_fac2.pdf'
+    contaminant_power_ratios_1D_save_f_names[4] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_all_z_column.pdf' #z_4_43_growth_fac2.pdf'
 
-    #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_half.pdf'
+    #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_absolute_1D_limit_z_2_00_only.pdf'
 
-    contaminant_power_1D_f_names = [None] * 4
+    contaminant_power_1D_f_names = [None] * 5
     contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
     contaminant_power_1D_f_names[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44.npy'
-    contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
-    contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
+    contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_060/contaminant_power_1D_z_3_01.npy'
+    contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
+    contaminant_power_1D_f_names[4] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
     make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
-    #make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names)
+    #make_plot_contaminant_power_absolute_1D(f_name, contaminant_power_1D_f_names)
 
     #make_plot_linear_flux_power_3D()
     #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')

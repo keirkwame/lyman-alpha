@@ -20,10 +20,10 @@ from fourier_estimators import *
 
 def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spec_root='gridded_spectra',spectra_savedir=None,mean_flux_desired=None):
     box_instance = SimulationBox(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=reload_snapshot,spectra_savefile_root=spec_root,spectra_savedir=spectra_savedir)
-    box_instance.convert_fourier_units_to_distance = True
-    print(box_instance._n_samp)
-    print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))
-    return box_instance.skewers_realisation(mean_flux_desired=mean_flux_desired), box_instance.k_box(), box_instance.mu_box(), box_instance
+    box_instance.convert_fourier_units_to_distance = False
+    '''print(box_instance._n_samp)
+    print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))'''
+    return box_instance.skewers_realisation(mean_flux_specified=mean_flux_desired) #, box_instance.k_box(), box_instance.mu_box(), box_instance
 
 
 #Get random Gaussian realisations
@@ -77,8 +77,8 @@ if __name__ == "__main__":
     spectra_savedir = sys.argv[5]
     fiducial_cosmology_fname = sys.argv[6]
     reload_snapshot = False
-    spec_root = 'gridded_spectra' #_DLAs_dodged'
-    mean_flux = None #0.68299813251533592 #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
+    spec_root = 'gridded_spectra_DLAs_LLS_dodged'
+    mean_flux =  #None #0.68299813251533592 #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
     norm = True
 
     #Test Gaussian realisations input
@@ -128,7 +128,8 @@ if __name__ == "__main__":
     #Generate boxes
     #simu_box, k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box,k_box,mu_box,box_instance_with_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    #simu_box,k_box,mu_box,box_instance_with_DLA
 
     #Column density distribution
     '''max_col_dens_100kms = box_instance_with_DLA.max_local_sum_of_column_density_in_each_skewer()
@@ -141,16 +142,16 @@ if __name__ == "__main__":
     mask_forest = (max_col_dens_100kms > 0. / (u.cm * u.cm)) * (max_col_dens_100kms <= 1.6e+17 / (u.cm * u.cm))
 
     #Delta fluxes
-    mean_flux_whole_box = np.mean(np.exp(-1.*box_instance_with_DLA.get_optical_depth()))
+    mean_flux_whole_box = np.mean(np.exp(-1.*box_instance_with_DLA.get_optical_depth()))'''
 
-    simu_box_large_dla = box_instance_with_DLA.skewers_realisation_subset(mask_large_dla,mean_flux_specified=mean_flux_whole_box)
+    '''simu_box_large_dla = box_instance_with_DLA.skewers_realisation_subset(mask_large_dla,mean_flux_specified=mean_flux_whole_box)
     simu_box_small_dla = box_instance_with_DLA.skewers_realisation_subset(mask_small_dla,mean_flux_specified=mean_flux_whole_box)
     simu_box_sub_dla = box_instance_with_DLA.skewers_realisation_subset(mask_sub_dla,mean_flux_specified=mean_flux_whole_box)
-    simu_box_lls = box_instance_with_DLA.skewers_realisation_subset(mask_lls,mean_flux_specified=mean_flux_whole_box)
-    simu_box_forest = box_instance_with_DLA.skewers_realisation_subset(mask_forest,mean_flux_specified=mean_flux_whole_box)
+    simu_box_lls = box_instance_with_DLA.skewers_realisation_subset(mask_lls,mean_flux_specified=mean_flux_whole_box)'''
+    #simu_box_forest = box_instance_with_DLA.skewers_realisation_subset(mask_forest,mean_flux_specified=mean_flux_whole_box)
 
     #1D powers
-    power_total_instance = FourierEstimator1D(simu_box)
+    '''power_total_instance = FourierEstimator1D(simu_box)
     power_total = power_total_instance.get_flux_power_1D()
 
     power_large_dla_instance = FourierEstimator1D(simu_box_large_dla)
@@ -160,18 +161,18 @@ if __name__ == "__main__":
     power_sub_dla_instance = FourierEstimator1D(simu_box_sub_dla)
     power_sub_dla = power_sub_dla_instance.get_flux_power_1D()
     power_lls_instance = FourierEstimator1D(simu_box_lls)
-    power_lls = power_lls_instance.get_flux_power_1D()
-    power_forest_instance = FourierEstimator1D(simu_box_forest)
+    power_lls = power_lls_instance.get_flux_power_1D()'''
+    power_forest_instance = FourierEstimator1D(simu_box) #_forest)
     power_forest = power_forest_instance.get_flux_power_1D()
 
-    power_hcd = ((power_lls * np.sum(mask_lls)) + (power_sub_dla * np.sum(mask_sub_dla)) + (power_small_dla * np.sum(mask_small_dla)) + (power_large_dla * np.sum(mask_large_dla))) / (mask_forest.size - np.sum(mask_forest))
-    power_recon = ((power_hcd * (mask_forest.size - np.sum(mask_forest))) + (power_forest * np.sum(mask_forest))) / mask_forest.size
+    '''power_hcd = ((power_lls * np.sum(mask_lls)) + (power_sub_dla * np.sum(mask_sub_dla)) + (power_small_dla * np.sum(mask_small_dla)) + (power_large_dla * np.sum(mask_large_dla))) / (mask_forest.size - np.sum(mask_forest))
+    power_recon = ((power_hcd * (mask_forest.size - np.sum(mask_forest))) + (power_forest * np.sum(mask_forest))) / mask_forest.size'''
 
     k_z_mod = box_instance_with_DLA.k_z_mod()
 
     #Saving power spectra
-    power_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    np.save(power_fname,np.vstack((k_z_mod.value,power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))'''
+    power_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44_750_10_DLAs_LLS_dodged.npy'
+    np.save(power_fname,np.vstack((k_z_mod.value,power_forest))) #power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))'''
 
     #Template fit
     '''def hcd_model(k_z_mod, a, b, c):
