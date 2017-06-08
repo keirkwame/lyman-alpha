@@ -3,6 +3,9 @@ import scipy.optimize as spo
 
 #from plotting import *
 
+def mcdonald_model(k_z_mod):
+    return 0.2 * (1. / (15000. * k_z_mod - 8.9)) #+ 0.018)
+
 def parametric_ratio_model(k_z_mod, a, b, c):
     return 1. / ((a * np.exp(b * k_z_mod) - 1.)**2) + c
     #return 1. / ((a * k_z_mod + b)**2) + c
@@ -26,6 +29,12 @@ def parametric_ratio_growth_factor_model(k_redshift_tuple, a0, a1, b0, b1, c0, c
     hubble_z = np.sqrt(omega_m * (1 + redshift) ** 3 + 1. - omega_m)
     c = 1. - (c0 / box_length / hubble_z)'''
     return 1. * (((1. + redshift) / (1. + redshift_pivot)) ** -3.55) / ((a * np.exp(b * k_z_mod) - 1.) ** 2) + c
+
+def parametric_ratio_growth_factor_model_final(k_redshift_tuple, a0, a1, b0, b1, redshift_pivot = 2.00):
+    (k_z_mod, redshift) = k_redshift_tuple
+    a = a0 * (((1. + redshift) / (1. + redshift_pivot)) ** a1)
+    b = b0 * (((1. + redshift) / (1. + redshift_pivot)) ** b1)
+    return (((1. + redshift) / (1. + redshift_pivot)) ** -3.55) / ((a * np.exp(b * k_z_mod) - 1.) ** 2)
 
 def fit_parametric_ratio_models(x, y):
     return spo.curve_fit(parametric_ratio_model, x, y)[0]
