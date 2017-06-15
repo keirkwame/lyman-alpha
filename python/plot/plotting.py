@@ -147,6 +147,9 @@ def make_plot_model_1D_comparison(save_f_name):
     alpha_mcdonald = (rogers_model_total_ratio[0] - 1.) / mcdonald_model(k_z_mod[0])
     mcdonald_model_evaluation = 1. + alpha_mcdonald * mcdonald_model(k_z_mod)
 
+    print(k_z_mod[2], k_z_mod[92])
+    print(mcdonald_model_evaluation[92] / mcdonald_model_evaluation[2], rogers_model_clipped_ratio[92] / rogers_model_clipped_ratio[2])
+
     plot_model_1D_comparison(np.vstack((k_z_mod,k_z_mod,k_z_mod)), np.vstack((rogers_model_total_ratio,rogers_model_clipped_ratio,mcdonald_model_evaluation)), save_f_name)
 
 def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminant_power_1D_f_names):
@@ -451,11 +454,11 @@ if __name__ == "__main__":
     contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_060/contaminant_power_1D_z_3_01.npy'
     contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
     contaminant_power_1D_f_names[4] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
+    #make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
     #make_plot_contaminant_power_absolute_1D(f_name, contaminant_power_1D_f_names)
 
-    '''save_f_name = '/Users/keir/Documents/dla_papers/paper_1D/mcdonald_model_comparison.png'
-    make_plot_model_1D_comparison(save_f_name)'''
+    save_f_name = '/Users/keir/Documents/dla_papers/paper_1D/mcdonald_model_comparison2.png'
+    make_plot_model_1D_comparison(save_f_name)
 
     #make_plot_linear_flux_power_3D()
     #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
