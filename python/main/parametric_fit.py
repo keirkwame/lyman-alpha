@@ -1,7 +1,15 @@
 import numpy as np
+import emcee as mc
+import corner as co
 import scipy.optimize as spo
 
 #from plotting import *
+
+def mcdonald_model(k_z_mod):
+    return 0.2 * (1. / (15000. * k_z_mod - 8.9)) #+ 0.018)
+
+def mcdonald_model_full(k_z_mod):
+    return 0.2 * ((1. / (15000. * k_z_mod - 8.9)) + 0.018)
 
 def parametric_ratio_model(k_z_mod, a, b, c):
     return 1. / ((a * np.exp(b * k_z_mod) - 1.)**2) + c
@@ -27,11 +35,74 @@ def parametric_ratio_growth_factor_model(k_redshift_tuple, a0, a1, b0, b1, c0, c
     c = 1. - (c0 / box_length / hubble_z)'''
     return 1. * (((1. + redshift) / (1. + redshift_pivot)) ** -3.55) / ((a * np.exp(b * k_z_mod) - 1.) ** 2) + c
 
+def parametric_ratio_growth_factor_model_final(k_redshift_tuple, a0, a1, b0, b1, redshift_pivot = 2.00):
+    (k_z_mod, redshift) = k_redshift_tuple
+    a = a0 * (((1. + redshift) / (1. + redshift_pivot)) ** a1)
+    b = b0 * (((1. + redshift) / (1. + redshift_pivot)) ** b1)
+    return (((1. + redshift) / (1. + redshift_pivot)) ** -3.55) / ((a * np.exp(b * k_z_mod) - 1.) ** 2)
+
 def fit_parametric_ratio_models(x, y):
     return spo.curve_fit(parametric_ratio_model, x, y)[0]
 
-def fit_parametric_ratio_redshift_evolution_models(x0, x1, y, initial_param_values = None):
-    return spo.curve_fit(parametric_ratio_growth_factor_model, (x0, x1), y, p0 = initial_param_values)[0]
+def fit_two_independent_variable_model(x0, x1, y, model_function, initial_param_values = None, y_sigma = None, param_bounds = (-np.inf, np.inf)):
+    return spo.curve_fit(model_function, (x0, x1), y, p0 = initial_param_values, sigma = y_sigma, bounds = param_bounds, method = None) #'lm')
+
+def lnlike_forest_linear_bias_model(param_array, x, y, yerr):
+    model_evaluation = forest_linear_bias_model(x, param_array[0], param_array[1])
+    return -0.5 * np.sum(((y - model_evaluation)**2) / ((yerr * model_evaluation)**2))
+
+def lnprior_forest_linear_bias_model(param_array):
+    if -10. < param_array[0] < 10. and -10. < param_array[1] < 10.: #b_F * (1 + beta_F); beta_F
+        return 0.
+    else:
+        return -np.inf
+
+def lnprob(param_array, x, y, yerr, lnlike, lnprior):
+    lnprior_evaluation = lnprior(param_array)
+    if not np.isfinite(lnprior_evaluation):
+        return -np.inf
+    else:
+        return lnprior_evaluation + lnlike(param_array, x, y, yerr)
+
+def get_posterior_samples(lnlike, lnprior, x, y, yerr, n_params, n_walkers, n_steps, n_burn_in_steps):
+    starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
+    sampler = mc.EnsembleSampler(n_walkers, n_params, lnprob, args = (x, y, yerr, lnlike, lnprior))
+    sampler.run_mcmc(starting_positions, n_steps)
+    return sampler.chain[:, n_burn_in_steps:, :].reshape((-1, n_params))
+
+def forest_linear_bias_model(k_mu_tuple, b_F_weighted, beta_F):
+    (k, mu) = k_mu_tuple
+    b_F = b_F_weighted / (1. + beta_F)
+    return (b_F * (1. + (beta_F * (mu ** 2)))) ** 2
+
+def forest_HCD_linear_bias_and_wings_model(k_mu_tuple, b_HCD, beta_HCD, L_HCD):
+    b_F = -0.122 #-0.09764619
+    beta_F = 1.663 #1.72410826
+
+    (k, mu) = k_mu_tuple
+
+    #F_HCD = np.sinc(k * mu * L_HCD)
+    F_HCD = np.sin(k * mu * L_HCD) / (k * mu * L_HCD)
+    forest_linear_bias = b_F * (1. + (beta_F * (mu ** 2)))
+    forest_auto_bias = forest_linear_bias ** 2
+    HCD_linear_bias_and_wings = b_HCD * (1. + (beta_HCD * (mu ** 2))) * F_HCD
+    HCD_auto_bias = HCD_linear_bias_and_wings ** 2
+    forest_HCD_cross_bias = 2. * forest_linear_bias * HCD_linear_bias_and_wings
+
+    return HCD_auto_bias + forest_HCD_cross_bias #+ forest_auto_bias
+
+def forest_non_linear_function(k, mu): #k in h / Mpc
+    k_NL = 6.40
+    alpha_NL = 0.569
+    k_P = 15.3
+    alpha_P = 2.01
+    k_V0 = 1.220
+    alpha_V = 1.50
+    k_V_prime = 0.923
+    alpha_V_prime = 0.451
+
+    k_V = k_V0 * ((1. + (k / k_V_prime)) ** alpha_V_prime)
+    return np.exp(((k / k_NL) ** alpha_NL) - ((k / k_P) ** alpha_P) - ((k * mu / k_V) ** alpha_V))
 
 #COURTESY OF BORIS LEISTEDT
 def lngaussian(x, mu, sig):
@@ -54,8 +125,68 @@ def fun(params):
 def get_optimal_model_parameter_values(initial_param_values):
     return spo.minimize(fun, x0 = initial_param_values)
 
-'''if __name__ == "__main__":
-    z = np.array([2.0, 2.44, 3.49, 4.43])  # shape Nz
+if __name__ == "__main__":
+    #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_raw.npz'
+    power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_specify_flux_64_750_10_4_15.npz'
+    #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_raw.npz'
+    power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_dodged_specify_flux_64_750_10_4_15.npz'
+    #power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_k_raw_max_1.npy') #(Mpc/h)^3 ? h
+    power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_kMax1.npy')
+    #fitting_model = forest_linear_bias_model
+    '''fitting_model = forest_HCD_linear_bias_and_wings_model
+    initial_param_values = None
+    #initial_param_values = np.array([-0.0288, 0.681, 24.3410])
+    #param_bounds = (-np.inf, np.inf)
+    param_bounds = (np.array([-np.inf, 0.3, -np.inf]), np.array([0., 0.7, np.inf]))'''
+    k_max = 1. #h / Mpc
+    power_file = np.load(power_file_name)
+    power_file_dodged = np.load(power_file_name_dodged)
+
+    '''power_box = power_file['arr_0'] * (75. ** 3) #(Mpc/h)^3
+    k_box = power_file['arr_1'] / 0.704 #h/Mpc
+    mu_box = np.absolute(power_file['arr_2']) #|mu|
+
+    power_large_scales = power_box[k_box < k_max][1:] #Remove k = 0
+    k_large_scales = k_box[k_box < k_max][1:]
+    mu_large_scales = mu_box[k_box < k_max][1:]
+
+    power_box_dodged = power_file_dodged['arr_0'] * (75. ** 3) #(Mpc/h)^3
+    power_large_scales_dodged = power_box_dodged[k_box < k_max][1:] #Remove k = 0'''
+
+    '''k_max_new = 0.63 #h / Mpc
+    mu_large_scales = mu_large_scales[k_large_scales < k_max_new]
+    power_large_scales_dodged = power_large_scales_dodged[k_large_scales < k_max_new]
+    power_linear = power_linear[k_large_scales < k_max_new]
+    k_large_scales = k_large_scales[k_large_scales < k_max_new]'''
+
+    '''counts_binned = power_file['arr_2'].flatten()
+    power_large_scales = power_file['arr_0'].flatten()[counts_binned > 0.] * (75. ** 3) #(Mpc/h)^3
+    k_large_scales = power_file['arr_1'].flatten()[counts_binned > 0.] / 0.704 #h/Mpc
+    mu_large_scales = np.absolute(power_file['arr_3'].flatten()[counts_binned > 0.]) #|mu|
+
+    power_large_scales_dodged = power_file_dodged['arr_0'].flatten()[counts_binned > 0.][k_large_scales <= k_max] * (75. ** 3)  # (Mpc/h)^3
+
+    counts_binned = counts_binned[counts_binned > 0.][k_large_scales <= k_max]
+    power_large_scales = power_large_scales[k_large_scales <= k_max]
+    mu_large_scales = mu_large_scales[k_large_scales <= k_max]
+    power_linear = power_linear[k_large_scales <= k_max]
+    k_large_scales = k_large_scales[k_large_scales <= k_max]
+
+    power_ratio = power_large_scales_dodged / (power_linear * forest_non_linear_function(k_large_scales, mu_large_scales))'''
+    #power_ratio_plot = power_ratio - forest_linear_bias_model((np.zeros_like(mu_large_scales),mu_large_scales),-0.09764619,1.72410826)
+
+    '''param_array, param_covar = fit_two_independent_variable_model(k_large_scales, mu_large_scales, power_ratio, fitting_model, initial_param_values=initial_param_values, y_sigma=None, param_bounds=param_bounds)
+    print(param_array)
+    print(param_covar)
+    print(np.sqrt(np.diag(param_covar)))'''
+
+    '''epsilon = 0.05
+    samples = get_posterior_samples(lnlike_forest_linear_bias_model, lnprior_forest_linear_bias_model, (k_large_scales, mu_large_scales), power_ratio, (1. / np.sqrt(counts_binned)) + epsilon, 2, 100, 100000, 50)
+    fig = co.corner(samples, labels = ['b_F (1 + beta_F)', 'beta_F'])
+    b_Forest, beta_Forest = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
+    print(b_Forest, beta_Forest)'''
+
+    '''z = np.array([2.0, 2.44, 3.49, 4.43])  # shape Nz
     kpar = ? np.linspace(?)  # shape Nk
     #  the data you want to fit, Pk_ratio_data, is a 2D array, function of (z, k)
 

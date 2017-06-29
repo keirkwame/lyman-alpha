@@ -217,24 +217,29 @@ class SimulationBox(Box):
         print("Scaled by:", scale)
         return scale
 
-    def _get_delta_flux(self,tau,mean_flux_desired,mean_flux_specified):
+    def _get_delta_flux(self,tau,mean_flux_desired,mean_flux_specified,tau_scaling_specified):
         if mean_flux_desired is None:
             tau_scaling = 1.
         else:
             tau_scaling = self._get_scale(tau,mean_flux_desired)
+
+        if tau_scaling_specified is not None:
+            tau_scaling = tau_scaling_specified
+
         if mean_flux_specified is None:
             mean_flux = np.mean(np.exp(-1.*tau*tau_scaling))
         else:
             mean_flux = mean_flux_specified
+
         return np.exp(-1.*tau*tau_scaling) / mean_flux - 1.
 
     def _get_delta_density(self,density):
         mean_density = np.mean(density)
         return density / mean_density - 1.
 
-    def skewers_realisation(self,mean_flux_desired=None,mean_flux_specified=None):
+    def skewers_realisation(self,mean_flux_desired=None,mean_flux_specified=None,tau_scaling_specified=None):
         tau = self.get_optical_depth()
-        delta_flux = self._get_delta_flux(tau,mean_flux_desired,mean_flux_specified)
+        delta_flux = self._get_delta_flux(tau,mean_flux_desired,mean_flux_specified,tau_scaling_specified)
         return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
 
     def skewers_realisation_hydrogen_overdensity(self, ion = None):

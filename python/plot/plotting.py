@@ -125,6 +125,33 @@ def make_plot_contaminant_power_ratios_1D(f_name, contaminant_power_1D_f_names):
 
     plot_contaminant_power_ratios_1D(k_z_mod, contaminant_power_ratios_1D, f_name)
 
+def make_plot_model_1D_comparison(save_f_name):
+    k_z_mod = np.arange(8.e-4,1.e-1,1.e-4) #s / km
+    redshift_expanded = np.ones_like(k_z_mod) * 2.00
+    k_redshift_tuple = (k_z_mod,redshift_expanded)
+
+    param_array_lls = [2.20011070,0.01337873,36.4492434,-0.06740389] #,0.98491499,-0.06307393]
+    rogers_model_lls_ratio = parametric_ratio_growth_factor_model_final(k_redshift_tuple,param_array_lls[0],param_array_lls[1],param_array_lls[2],param_array_lls[3]) #,param_array_lls[4],param_array_lls[5])
+    param_array_sub_dla = [1.50826019,0.09936676,81.3877693,-0.22873123] #,0.98491499,-0.06307393]
+    rogers_model_sub_dla_ratio = parametric_ratio_growth_factor_model_final(k_redshift_tuple,param_array_sub_dla[0],param_array_sub_dla[1],param_array_sub_dla[2],param_array_sub_dla[3]) #,param_array_lls[4],param_array_lls[5])
+    param_array_small_dla = [1.14153374,0.09370901,162.948304,0.01262570] #,0.98491499,-0.06307393]
+    rogers_model_small_dla_ratio = parametric_ratio_growth_factor_model_final(k_redshift_tuple,param_array_small_dla[0],param_array_small_dla[1],param_array_small_dla[2],param_array_small_dla[3]) #,param_array_lls[4],param_array_lls[5])
+    param_array_large_dla = [0.86333925,0.29429816,429.580169,-0.49637168] #,0.98491499,-0.06307393]
+    rogers_model_large_dla_ratio = parametric_ratio_growth_factor_model_final(k_redshift_tuple,param_array_large_dla[0],param_array_large_dla[1],param_array_large_dla[2],param_array_large_dla[3]) #,param_array_lls[4],param_array_lls[5])
+
+    alpha_params = [0.106,0.059,0.031,0.027] #LLS, sub-DLA, small DLA, large DLA
+    small_scale_correction = 0. #(alpha_params[0] * 0.98491499) + (alpha_params[1] * 0.86666716) + (alpha_params[2] * 0.65720658) + (alpha_params[3] * 0.33391171) + 1. - np.sum(alpha_params)
+    rogers_model_total_ratio = 1. + (alpha_params[0] * rogers_model_lls_ratio) + (alpha_params[1] * rogers_model_sub_dla_ratio) + (alpha_params[2] * rogers_model_small_dla_ratio) + (alpha_params[3] * rogers_model_large_dla_ratio) + small_scale_correction
+    rogers_model_clipped_ratio = 1. + (alpha_params[0] * rogers_model_lls_ratio) + (alpha_params[1] * rogers_model_sub_dla_ratio) + small_scale_correction
+
+    alpha_mcdonald = (rogers_model_total_ratio[0] - 1.) / mcdonald_model(k_z_mod[0])
+    mcdonald_model_evaluation = 1. + alpha_mcdonald * mcdonald_model(k_z_mod)
+
+    print(k_z_mod[2], k_z_mod[92])
+    print(mcdonald_model_evaluation[92] / mcdonald_model_evaluation[2], rogers_model_clipped_ratio[92] / rogers_model_clipped_ratio[2])
+
+    plot_model_1D_comparison(np.vstack((k_z_mod,k_z_mod,k_z_mod)), np.vstack((rogers_model_total_ratio,rogers_model_clipped_ratio,mcdonald_model_evaluation)), save_f_name)
+
 def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminant_power_1D_f_names):
     #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_less_z_diff_colours.png'
     contaminant_power_1D_z_2_00, contaminant_power_1D_z_2_44, contaminant_power_1D_z_3_01, contaminant_power_1D_z_3_49, contaminant_power_1D_z_4_43 = _load_contaminant_power_1D_arrays(contaminant_power_1D_f_names)
@@ -345,6 +372,22 @@ def plot_contaminant_power_ratios_1D(k_z_mod,power_ratios,f_name):
     ax.legend(frameon=False, fontsize=13.0) #, loc='upper right')
     plt.savefig(f_name)
 
+def plot_model_1D_comparison(k_z_mod, model_evaluations, save_f_name):
+    line_labels = ['Rogers et al. (2017) model [total contamination]','Rogers et al. (2017) model [residual contamination]','McDonald et al. (2005) model']
+    line_colours = dc.get_distinct(3)
+    x_label = r'$k_{||}$ ($\mathrm{s}\,\mathrm{km}^{-1}$)'
+    y_label = r'$P_\mathrm{Total}^\mathrm{1D} / P_\mathrm{Forest}^\mathrm{1D}$'
+    x_log_scale = True
+    y_log_scale = False #True
+
+    plot_instance = Plot()
+    fig, ax = plot_instance.plot_lines(k_z_mod, model_evaluations, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale)
+    fig.subplots_adjust(right=0.97)
+    ax.set_xlim([6.e-4, 1.e-1])
+    ax.axhline(y=1.0, color='black', ls=':')
+    ax.legend(frameon=False, fontsize=13.0)
+    plt.savefig(save_f_name)
+
 def plot_linear_flux_power_3D(k_mod,power,f_name):
     line_labels = ['Linear theory', 'Dark matter', 'Lyman-alpha forest flux']
     dis_cols = dc.get_distinct(2)
@@ -402,6 +445,7 @@ if __name__ == "__main__":
     contaminant_power_ratios_1D_save_f_names[3] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_z_3_49_growth_fac2.pdf'
     contaminant_power_ratios_1D_save_f_names[4] = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_ratios_1D_templates_all_z_column.pdf' #z_4_43_growth_fac2.pdf'
 
+
     #f_name = '/Users/keir/Documents/dla_papers/paper_1D/contaminant_power_absolute_1D_limit_z_2_00_only.pdf'
 
     contaminant_power_1D_f_names = [None] * 5
@@ -410,8 +454,11 @@ if __name__ == "__main__":
     contaminant_power_1D_f_names[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_060/contaminant_power_1D_z_3_01.npy'
     contaminant_power_1D_f_names[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/contaminant_power_1D_z_3_49.npy'
     contaminant_power_1D_f_names[4] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_052/contaminant_power_1D_z_4_43.npy'
-    make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
+    #make_plot_contaminant_power_ratios_1D_with_templates(contaminant_power_ratios_1D_save_f_names, contaminant_power_1D_f_names)
     #make_plot_contaminant_power_absolute_1D(f_name, contaminant_power_1D_f_names)
+
+    save_f_name = '/Users/keir/Documents/dla_papers/paper_1D/mcdonald_model_comparison2.png'
+    make_plot_model_1D_comparison(save_f_name)
 
     #make_plot_linear_flux_power_3D()
     #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
