@@ -21,6 +21,8 @@ if __name__ == "__main__":
 
     undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra') #DLAs_LLS_dodged')
 
+    print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
+
     '''undodged_spectra_ins.convert_fourier_units_to_distance = True
     spectra_box = undodged_spectra_ins.skewers_realisation_hydrogen_overdensity(ion = -1)
     k_box = undodged_spectra_ins.k_box()

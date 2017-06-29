@@ -23,7 +23,7 @@ def snapshot_to_boxes(snap_num,snap_dir,grid_samps,spectrum_resolution,reload_sn
     box_instance.convert_fourier_units_to_distance = False
     '''print(box_instance._n_samp)
     print(box_instance.k_i('z')[1], np.max(box_instance.k_i('z')))'''
-    return box_instance.skewers_realisation(mean_flux_specified=mean_flux_desired) #, box_instance.k_box(), box_instance.mu_box(), box_instance
+    return box_instance.skewers_realisation(mean_flux_specified=mean_flux_desired), box_instance #, box_instance.k_box(), box_instance.mu_box(), box_instance
 
 
 #Get random Gaussian realisations
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     fiducial_cosmology_fname = sys.argv[6]
     reload_snapshot = False
     spec_root = 'gridded_spectra_DLAs_LLS_dodged'
-    mean_flux =  #None #0.68299813251533592 #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
+    mean_flux = 0.67573418185771716 #None #0.68299813251533592 #0.66932662196737913 #0.75232943916324291 #0.36000591326127357 #None
     norm = True
 
     #Test Gaussian realisations input
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     #Generate boxes
     #simu_box, k_box, mu_box, box_instance = anisotropic_pre_computed_power_spectrum_to_boxes(fiducial_cosmology_fname, BOSS_DLA_mu_coefficients, box_size, n_samp, redshift, H0, omega_m)
     #(simu_box,input_k), k_box, mu_box, box_instance = anisotropic_power_law_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,BOSS_DLA_mu_coefficients,box_size, n_samp, redshift, H0, omega_m)
-    simu_box = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
+    simu_box, box_instance_with_DLA = snapshot_to_boxes(snap_num, snap_dir, grid_samps, spectrum_resolution, reload_snapshot,spec_root,spectra_savedir,mean_flux_desired=mean_flux)
     #simu_box,k_box,mu_box,box_instance_with_DLA
 
     #Column density distribution
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     k_z_mod = box_instance_with_DLA.k_z_mod()
 
     #Saving power spectra
-    power_fname = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44_750_10_DLAs_LLS_dodged.npy'
+    power_fname = '/home/keir/Data/Illustris_big_box_spectra/snapdir_064/contaminant_power_1D_z_2_44_750_10_DLAs_LLS_dodged.npy'
     np.save(power_fname,np.vstack((k_z_mod.value,power_forest))) #power_total,power_forest,power_lls,power_sub_dla,power_small_dla,power_large_dla)))'''
 
     #Template fit
