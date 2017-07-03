@@ -231,6 +231,7 @@ class SimulationBox(Box):
         else:
             mean_flux = mean_flux_specified
 
+        print(mean_flux)
         return np.exp(-1.*tau*tau_scaling) / mean_flux - 1.
 
     def _get_delta_density(self,density):
