@@ -1,6 +1,8 @@
 import numpy as np
 import emcee as mc
 import corner as co
+import matplotlib.pyplot as plt
+import numpy.random as npr
 import scipy.optimize as spo
 
 #from plotting import *
@@ -52,10 +54,14 @@ def lnlike_forest_linear_bias_model(param_array, x, y, yerr):
     return -0.5 * np.sum(((y - model_evaluation)**2) / ((yerr * model_evaluation)**2))
 
 def lnprior_forest_linear_bias_model(param_array):
-    if -10. < param_array[0] < 10. and -10. < param_array[1] < 10.: #b_F * (1 + beta_F); beta_F
+    if -10. < param_array[0] < 0. and 0. < param_array[1] < 10.: #b_F (1 + beta_F); beta_F
         return 0.
     else:
         return -np.inf
+
+def get_starting_positions_in_uniform_prior(prior_limits, n_walkers):
+    n_params = prior_limits.shape[0]
+    return npr.uniform(low = prior_limits[:,0], high = prior_limits[:,1], size = (n_walkers, n_params))
 
 def lnprob(param_array, x, y, yerr, lnlike, lnprior):
     lnprior_evaluation = lnprior(param_array)
@@ -64,11 +70,23 @@ def lnprob(param_array, x, y, yerr, lnlike, lnprior):
     else:
         return lnprior_evaluation + lnlike(param_array, x, y, yerr)
 
-def get_posterior_samples(lnlike, lnprior, x, y, yerr, n_params, n_walkers, n_steps, n_burn_in_steps):
-    starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
+def gelman_rubin_convergence_statistic(mcmc_chains): #dims: Walkers * Steps * Parameters
+    n_walkers = mcmc_chains.shape[0]
+    n_steps = mcmc_chains.shape[1]
+
+    within_chain_variance = np.mean(np.var(mcmc_chains, axis = 1, ddof = 1), axis = 0) #dims: Parameters
+
+    chain_means = np.mean(mcmc_chains, axis = 1)
+    between_chain_variance = np.var(chain_means, axis = 0, ddof = 1) * n_steps
+
+    posterior_marginal_variance = ((n_steps - 1) * within_chain_variance / n_steps) + ((n_walkers + 1) * between_chain_variance / n_steps / n_walkers)
+    return np.sqrt(posterior_marginal_variance / within_chain_variance)
+
+def get_posterior_samples(lnlike, lnprior, x, y, yerr, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions):
+    #starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
     sampler = mc.EnsembleSampler(n_walkers, n_params, lnprob, args = (x, y, yerr, lnlike, lnprior))
     sampler.run_mcmc(starting_positions, n_steps)
-    return sampler.chain[:, n_burn_in_steps:, :].reshape((-1, n_params))
+    return sampler.chain[:, n_burn_in_steps:, :].reshape((-1, n_params)), sampler.chain[:, n_burn_in_steps:, :] #, mc.autocorr.integrated_time(sampler.chain,axis=1), sampler.chain
 
 def forest_linear_bias_model(k_mu_tuple, b_F_weighted, beta_F):
     (k, mu) = k_mu_tuple
@@ -127,9 +145,9 @@ def get_optimal_model_parameter_values(initial_param_values):
 
 if __name__ == "__main__":
     #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_raw.npz'
-    power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_specify_flux_64_750_10_4_15.npz'
+    power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_kMax1_tau_10_00.npz'
     #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_raw.npz'
-    power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_dodged_specify_flux_64_750_10_4_15.npz'
+    power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_4_6_kMax1.npz'
     #power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_k_raw_max_1.npy') #(Mpc/h)^3 ? h
     power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_kMax1.npy')
     #fitting_model = forest_linear_bias_model
@@ -159,7 +177,7 @@ if __name__ == "__main__":
     power_linear = power_linear[k_large_scales < k_max_new]
     k_large_scales = k_large_scales[k_large_scales < k_max_new]'''
 
-    '''counts_binned = power_file['arr_2'].flatten()
+    counts_binned = power_file['arr_2'].flatten()
     power_large_scales = power_file['arr_0'].flatten()[counts_binned > 0.] * (75. ** 3) #(Mpc/h)^3
     k_large_scales = power_file['arr_1'].flatten()[counts_binned > 0.] / 0.704 #h/Mpc
     mu_large_scales = np.absolute(power_file['arr_3'].flatten()[counts_binned > 0.]) #|mu|
@@ -172,7 +190,7 @@ if __name__ == "__main__":
     power_linear = power_linear[k_large_scales <= k_max]
     k_large_scales = k_large_scales[k_large_scales <= k_max]
 
-    power_ratio = power_large_scales_dodged / (power_linear * forest_non_linear_function(k_large_scales, mu_large_scales))'''
+    power_ratio = power_large_scales_dodged / (power_linear * forest_non_linear_function(k_large_scales, mu_large_scales))
     #power_ratio_plot = power_ratio - forest_linear_bias_model((np.zeros_like(mu_large_scales),mu_large_scales),-0.09764619,1.72410826)
 
     '''param_array, param_covar = fit_two_independent_variable_model(k_large_scales, mu_large_scales, power_ratio, fitting_model, initial_param_values=initial_param_values, y_sigma=None, param_bounds=param_bounds)
@@ -180,11 +198,22 @@ if __name__ == "__main__":
     print(param_covar)
     print(np.sqrt(np.diag(param_covar)))'''
 
-    '''epsilon = 0.05
-    samples = get_posterior_samples(lnlike_forest_linear_bias_model, lnprior_forest_linear_bias_model, (k_large_scales, mu_large_scales), power_ratio, (1. / np.sqrt(counts_binned)) + epsilon, 2, 100, 100000, 50)
+    n_params = 2
+    n_walkers = 100
+    n_steps = 500
+    n_burn_in_steps = 100
+    epsilon = 0.
+    prior_limits = np.array([[-10., 0.], [0., 10.]])
+    #starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
+    starting_positions = get_starting_positions_in_uniform_prior(prior_limits, n_walkers)
+    #print(starting_positions)
+    samples, chains_without_burn_in = get_posterior_samples(lnlike_forest_linear_bias_model, lnprior_forest_linear_bias_model, (k_large_scales, mu_large_scales), power_ratio, (1. / np.sqrt(counts_binned)) + epsilon, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions)
+    gelman_rubin_statistic = gelman_rubin_convergence_statistic(chains_without_burn_in)
+    print(gelman_rubin_statistic)
     fig = co.corner(samples, labels = ['b_F (1 + beta_F)', 'beta_F'])
     b_Forest, beta_Forest = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
-    print(b_Forest, beta_Forest)'''
+    print(b_Forest, beta_Forest)
+    plt.show()
 
     '''z = np.array([2.0, 2.44, 3.49, 4.43])  # shape Nz
     kpar = ? np.linspace(?)  # shape Nk
