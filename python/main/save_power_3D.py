@@ -24,7 +24,7 @@ if __name__ == "__main__":
     #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
 
     undodged_spectra_ins.convert_fourier_units_to_distance = True
-    spectra_box = undodged_spectra_ins.skewers_realisation() #mean_flux_specified=0.675940542622) #0.67573418185771716) #_hydrogen_overdensity(ion = -1)
+    spectra_box = undodged_spectra_ins.skewers_realisation(tau_scaling_specified = 2.0) #mean_flux_specified=0.675940542622) #0.67573418185771716) #_hydrogen_overdensity(ion = -1)
     k_box = undodged_spectra_ins.k_box()
     mu_box = undodged_spectra_ins.mu_box()
 
@@ -42,4 +42,4 @@ if __name__ == "__main__":
     #power,df_hat = fourier_estimator_instance.get_flux_power_3D()
     power_binned, k_binned, mu_binned, bin_counts = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=True,std_err=False)
 
-    np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power_DLAs_dodged_64_1000_7_4_6_kMax1.npz',power_binned,k_binned,bin_counts,mu_binned) #,model_power_binned)'''
+    np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_kMax1_tau_2_00.npz',power_binned,k_binned,bin_counts,mu_binned) #,model_power_binned)'''
