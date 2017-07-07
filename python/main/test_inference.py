@@ -32,7 +32,7 @@ if __name__ == "__main__":
     mu_box = test_gaussian_ins.mu_box()
 
     #Binning
-    k_min = np.min(k_box[k_box > 0. / u.Mpc])
+    '''k_min = np.min(k_box[k_box > 0. / u.Mpc])
     k_max = k_max = 0.704 / u.Mpc #np.max(k_box)
     k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_k_bins - 1))) / u.Mpc
     k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_k_bins + 1)) / u.Mpc
@@ -48,4 +48,4 @@ if __name__ == "__main__":
     #Power spectra
     power_bin,k_bin,mu_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,std_err=False)
 
-    np.savez(save_filename, power_bin, k_bin, bin_count, mu_bin)
+    np.savez(save_filename, power_bin, k_bin, bin_count, mu_bin)'''

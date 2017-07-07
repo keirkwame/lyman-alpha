@@ -1,4 +1,5 @@
 import numpy as np
+import math as mh
 import emcee as mc
 import corner as co
 import matplotlib.pyplot as plt
@@ -51,7 +52,7 @@ def fit_two_independent_variable_model(x0, x1, y, model_function, initial_param_
 
 def lnlike_forest_linear_bias_model(param_array, x, y, yerr):
     model_evaluation = forest_linear_bias_model(x, param_array[0], param_array[1])
-    return -0.5 * np.sum(((y - model_evaluation)**2) / ((yerr * model_evaluation)**2))
+    return -0.5 * np.sum(((y - model_evaluation)**2) / ((yerr * model_evaluation * mh.sqrt(2.))**2)) #model_evaluation
 
 def lnprior_forest_linear_bias_model(param_array):
     if -10. < param_array[0] < 0. and 0. < param_array[1] < 10.: #b_F (1 + beta_F); beta_F
@@ -145,11 +146,12 @@ def get_optimal_model_parameter_values(initial_param_values):
 
 if __name__ == "__main__":
     #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_raw.npz'
-    power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_kMax1.npz'
+    #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_kMax1.npz'
+    #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_test_inference_anisotropic_biased_flat_power_21_21_21_evenMubin_num11.npz'
     #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_raw.npz'
     power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_4_6_kMax1.npz'
     #power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_k_raw_max_1.npy') #(Mpc/h)^3 ? h
-    power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_kMax1.npy')
+    power_linear = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_more_modes_kMax1_evenMubin.npy') #_evenMubin_k60bin.npy')
     #fitting_model = forest_linear_bias_model
     '''fitting_model = forest_HCD_linear_bias_and_wings_model
     initial_param_values = None
@@ -157,71 +159,107 @@ if __name__ == "__main__":
     #param_bounds = (-np.inf, np.inf)
     param_bounds = (np.array([-np.inf, 0.3, -np.inf]), np.array([0., 0.7, np.inf]))'''
     k_max = 1. #h / Mpc
-    power_file = np.load(power_file_name_dodged)
-    power_file_dodged = np.load(power_file_name_dodged)
+    k_min = 0.
 
-    '''power_box = power_file['arr_0'] * (75. ** 3) #(Mpc/h)^3
-    k_box = power_file['arr_1'] / 0.704 #h/Mpc
-    mu_box = np.absolute(power_file['arr_2']) #|mu|
+    n_realisations = 10
+    b_F_weighted_ensemble = [None] * n_realisations
+    beta_F_ensemble = [None] * n_realisations
 
-    power_large_scales = power_box[k_box < k_max][1:] #Remove k = 0
-    k_large_scales = k_box[k_box < k_max][1:]
-    mu_large_scales = mu_box[k_box < k_max][1:]
+    for i in range(n_realisations):
+        power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_test_inference_anisotropic_biased_minus3_power_21_21_21_8Mubin_15kbin_num%i.npz'%(i+1)
+        power_file = np.load(power_file_name_dodged)
+        power_file_dodged = np.load(power_file_name_dodged)
 
-    power_box_dodged = power_file_dodged['arr_0'] * (75. ** 3) #(Mpc/h)^3
-    power_large_scales_dodged = power_box_dodged[k_box < k_max][1:] #Remove k = 0'''
+        '''power_box = power_file['arr_0'] * (75. ** 3) #(Mpc/h)^3
+        k_box = power_file['arr_1'] / 0.704 #h/Mpc
+        mu_box = np.absolute(power_file['arr_2']) #|mu|
+    
+        power_large_scales = power_box[k_box < k_max][1:] #Remove k = 0
+        k_large_scales = k_box[k_box < k_max][1:]
+        mu_large_scales = mu_box[k_box < k_max][1:]
+    
+        power_box_dodged = power_file_dodged['arr_0'] * (75. ** 3) #(Mpc/h)^3
+        power_large_scales_dodged = power_box_dodged[k_box < k_max][1:] #Remove k = 0'''
 
-    '''k_max_new = 0.63 #h / Mpc
-    mu_large_scales = mu_large_scales[k_large_scales < k_max_new]
-    power_large_scales_dodged = power_large_scales_dodged[k_large_scales < k_max_new]
-    power_linear = power_linear[k_large_scales < k_max_new]
-    k_large_scales = k_large_scales[k_large_scales < k_max_new]'''
+        '''k_max_new = 0.63 #h / Mpc
+        mu_large_scales = mu_large_scales[k_large_scales < k_max_new]
+        power_large_scales_dodged = power_large_scales_dodged[k_large_scales < k_max_new]
+        power_linear = power_linear[k_large_scales < k_max_new]
+        k_large_scales = k_large_scales[k_large_scales < k_max_new]'''
 
-    counts_binned = power_file['arr_2'].flatten()
-    power_large_scales = power_file['arr_0'].flatten()[counts_binned > 0.] * (75. ** 3) #(Mpc/h)^3
-    k_large_scales = power_file['arr_1'].flatten()[counts_binned > 0.] / 0.704 #h/Mpc
-    mu_large_scales = np.absolute(power_file['arr_3'].flatten()[counts_binned > 0.]) #|mu|
+        counts_binned = power_file['arr_2'].flatten()
+        power_large_scales = power_file['arr_0'].flatten()[counts_binned > 0.] * (21. ** 6) #(Mpc/h)^3
+        k_large_scales = power_file['arr_1'].flatten()[counts_binned > 0.] / 0.704 #h/Mpc
+        mu_large_scales = np.absolute(power_file['arr_3'].flatten()[counts_binned > 0.]) #|mu|
 
-    power_large_scales_dodged = power_file_dodged['arr_0'].flatten()[counts_binned > 0.][k_large_scales <= k_max] * (75. ** 3)  # (Mpc/h)^3
-    #power_linear = power_linear.flatten()[counts_binned > 0.][k_large_scales <= k_max]
+        power_large_scales_dodged = power_file_dodged['arr_0'].flatten()[counts_binned > 0.][k_large_scales <= k_max] * (21. ** 6)  # (Mpc/h)^3
+        power_theory_binned = power_file_dodged['arr_4'].flatten()[counts_binned > 0.][k_large_scales <= k_max] # (Mpc/h)^3
+        #power_linear = power_linear.flatten()[counts_binned > 0.][k_large_scales <= k_max]
 
-    counts_binned = counts_binned[counts_binned > 0.][k_large_scales <= k_max]
-    power_large_scales = power_large_scales[k_large_scales <= k_max]
-    mu_large_scales = mu_large_scales[k_large_scales <= k_max]
-    power_linear = power_linear[k_large_scales <= k_max]
-    k_large_scales = k_large_scales[k_large_scales <= k_max]
+        counts_binned = counts_binned[counts_binned > 0.][k_large_scales <= k_max]
+        power_large_scales = power_large_scales[k_large_scales <= k_max]
+        mu_large_scales = mu_large_scales[k_large_scales <= k_max]
+        #power_linear = power_linear[k_large_scales <= k_max]
+        k_large_scales = k_large_scales[k_large_scales <= k_max]
 
-    power_ratio = power_large_scales_dodged / (power_linear * forest_non_linear_function(k_large_scales, mu_large_scales))
-    power_ratio_errors = 1. / np.sqrt(counts_binned)
-    #power_ratio_plot = power_ratio - forest_linear_bias_model((np.zeros_like(mu_large_scales),mu_large_scales),-0.09764619,1.72410826)
+        counts_binned = counts_binned[k_large_scales >= k_min]
+        power_large_scales = power_large_scales[k_large_scales >= k_min]
+        power_large_scales_dodged = power_large_scales_dodged[k_large_scales >= k_min]
+        power_theory_binned = power_theory_binned[k_large_scales >= k_min]
+        mu_large_scales = mu_large_scales[k_large_scales >= k_min]
+        #power_linear = power_linear[k_large_scales >= k_min]
+        k_large_scales = k_large_scales[k_large_scales >= k_min]
 
-    '''param_array, param_covar = fit_two_independent_variable_model(k_large_scales, mu_large_scales, power_ratio, fitting_model, initial_param_values=initial_param_values, y_sigma=None, param_bounds=param_bounds)
-    print(param_array)
-    print(param_covar)
-    print(np.sqrt(np.diag(param_covar)))'''
+        '''k_max2 = 0.7
+        counts_binned = counts_binned[k_large_scales <= k_max2]
+        power_large_scales = power_large_scales[k_large_scales <= k_max2]
+        power_large_scales_dodged = power_large_scales_dodged[k_large_scales <= k_max2]
+        mu_large_scales = mu_large_scales[k_large_scales <= k_max2]
+        power_linear = power_linear[k_large_scales <= k_max2]
+        k_large_scales = k_large_scales[k_large_scales <= k_max2]'''
 
-    n_params = 2
-    n_walkers = 100
-    n_steps = 500
-    n_burn_in_steps = 100
-    prior_limits = np.array([[-10., 0.], [0., 10.]])
-    #starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
-    starting_positions = get_starting_positions_in_uniform_prior(prior_limits, n_walkers)
-    #print(starting_positions)
-    samples, chains_without_burn_in = get_posterior_samples(lnlike_forest_linear_bias_model, lnprior_forest_linear_bias_model, (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions)
-    gelman_rubin_statistic = gelman_rubin_convergence_statistic(chains_without_burn_in)
-    print(gelman_rubin_statistic)
-    fig = co.corner(samples, labels = ['b_F (1 + beta_F)', 'beta_F'])
-    b_Forest, beta_Forest = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
-    print(b_Forest, beta_Forest)
-    n_dof = k_large_scales.size - 2
-    print(-2. * lnlike_forest_linear_bias_model([b_Forest[0],beta_Forest[0]],(k_large_scales, mu_large_scales), power_ratio, power_ratio_errors) / n_dof)
-    print(np.sum(counts_binned))
-    plt.show()
+        power_ratio = power_large_scales_dodged / power_theory_binned #((k_large_scales / (0.5 / 0.704)) ** -3) #1. #(power_linear * 1.) #forest_non_linear_function(k_large_scales, mu_large_scales))
+        power_ratio_errors = 1. / np.sqrt(counts_binned) #+ 0.013
+        #power_ratio_plot = power_ratio - forest_linear_bias_model((np.zeros_like(mu_large_scales),mu_large_scales),-0.09764619,1.72410826)
+        '''power_ratio = power_file_dodged['arr_0'].flatten()[1:] * (21**6) #/ 2.
+        k_large_scales = power_file_dodged['arr_1'].flatten()[1:] / 0.704
+        mu_large_scales = power_file_dodged['arr_2'].flatten()[1:]
+        counts_binned = np.ones_like(k_large_scales)
+        power_ratio_errors = np.ones_like(k_large_scales)'''
+
+        '''param_array, param_covar = fit_two_independent_variable_model(k_large_scales, mu_large_scales, power_ratio, fitting_model, initial_param_values=initial_param_values, y_sigma=None, param_bounds=param_bounds)
+        print(param_array)
+        print(param_covar)
+        print(np.sqrt(np.diag(param_covar)))'''
+
+        n_params = 2
+        n_walkers = 100
+        n_steps = 1000
+        n_burn_in_steps = 200
+        prior_limits = np.array([[-10., 0.], [0., 10.]]) #[0., 10.]])
+        b_F_weighted_true = -0.325
+        beta_F_true = 1.663
+        #starting_positions = [[-0.325, 1.663] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
+        starting_positions = get_starting_positions_in_uniform_prior(prior_limits, n_walkers)
+        #print(starting_positions)
+        samples, chains_without_burn_in = get_posterior_samples(lnlike_forest_linear_bias_model, lnprior_forest_linear_bias_model, (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions)
+        gelman_rubin_statistic = gelman_rubin_convergence_statistic(chains_without_burn_in)
+        print(gelman_rubin_statistic)
+        fig = co.corner(samples, labels = ['b_F (1 + beta_F)', 'beta_F'], truths = [b_F_weighted_true,beta_F_true]) #[-0.325,1.663]
+        b_Forest, beta_Forest = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
+        print(b_Forest, beta_Forest)
+        n_dof = k_large_scales.size - 2
+        print(-2. * lnlike_forest_linear_bias_model([b_Forest[0],beta_Forest[0]],(k_large_scales, mu_large_scales), power_ratio, power_ratio_errors) / n_dof)
+        print(np.sum(counts_binned))
+        plt.show()
+
+        b_F_weighted_ensemble[i] = b_Forest[0]
+        beta_F_ensemble[i] = beta_Forest[0]
 
     plt.figure()
     for b_F_weighted, beta_F in samples[npr.randint(len(samples), size = 100)]:
         plt.scatter(k_large_scales, forest_linear_bias_model((k_large_scales,mu_large_scales),b_F_weighted,beta_F), color='red', alpha=0.1)
+    plt.scatter(k_large_scales, forest_linear_bias_model((k_large_scales,mu_large_scales),b_F_weighted_true,beta_F_true), color='blue', alpha=0.8)
     plt.errorbar(k_large_scales, power_ratio, yerr=power_ratio_errors*power_ratio, ecolor='gray', ls='')
     plt.scatter(k_large_scales, power_ratio, c=mu_large_scales, cmap='gray', edgecolors='black')
     plt.colorbar()
