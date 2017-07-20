@@ -62,6 +62,10 @@ def lnlike_forest_HCD_linear_bias_and_wings_model(param_array, x, y, yerr):
     model_evaluation = forest_HCD_linear_bias_and_wings_model(x, param_array[0], param_array[1], param_array[2])
     return -0.5 * np.sum(((y - model_evaluation)**2) / (np.mean(yerr * model_evaluation * mh.sqrt(2.))**2)) #model_evaluation
 
+def lnlike_forest_HCD_linear_bias_and_wings_model_fully_floated(param_array, x, y, yerr):
+    model_evaluation = forest_HCD_linear_bias_and_wings_model_fully_floated(x, param_array[0], param_array[1], param_array[2], param_array[3], param_array[4])
+    return -0.5 * np.sum(((y - model_evaluation)**2) / (np.mean(yerr * model_evaluation * mh.sqrt(2.))**2)) #model_evaluation
+
 #Priors
 def lnprior_forest_linear_bias_model(param_array):
     if -10. < param_array[0] < 0. and 0. < param_array[1] < 10.: #b_F (1 + beta_F); beta_F
@@ -72,6 +76,12 @@ def lnprior_forest_linear_bias_model(param_array):
 def lnprior_forest_HCD_linear_bias_and_wings_model(param_array):
     if -0.2 < param_array[0] < 0. and 0. < param_array[1] < 1.6 and 0. < param_array[2] < 70.: #b_HCD; beta_HCD; L_HCD
         return -0.5 * (((param_array[1] - 0.5) / 0.2)**2) #0.
+    else:
+        return -np.inf
+
+def lnprior_forest_HCD_linear_bias_and_wings_model_fully_floated(param_array):
+    if -0.2 < param_array[0] < 0. and 0. < param_array[1] < 1.6 and 0. < param_array[2] < 70. and -10. < param_array[3] < 0. and 0. < param_array[4] < 10.: #b_HCD; beta_HCD; L_HCD
+        return (-0.5 * (((param_array[1] - 0.5) / 0.2)**2)) + (-0.5 * (((param_array[3] - -0.267) / 0.004)**2)) + (-0.5 * (((param_array[4] - 1.617) / 0.068)**2)) #0.
     else:
         return -np.inf
 
@@ -128,6 +138,23 @@ def forest_HCD_linear_bias_and_wings_model(k_mu_tuple, b_HCD, beta_HCD, L_HCD):
 
     return HCD_auto_bias + forest_HCD_cross_bias #+ forest_auto_bias
 
+def forest_HCD_linear_bias_and_wings_model_fully_floated(k_mu_tuple, b_HCD, beta_HCD, L_HCD, b_F_weighted, beta_F):
+    #b_F = -0.102 #-0.122 #-0.09764619
+    #beta_F = 1.617 #1.663 #1.72410826
+    b_F = b_F_weighted / (1. + beta_F)
+
+    (k, mu) = k_mu_tuple
+
+    F_HCD = np.sinc(k * mu * L_HCD / mh.pi)
+    #F_HCD = np.sin(k * mu * L_HCD) / (k * mu * L_HCD)
+    forest_linear_bias = b_F * (1. + (beta_F * (mu ** 2)))
+    forest_auto_bias = forest_linear_bias ** 2
+    HCD_linear_bias_and_wings = b_HCD * (1. + (beta_HCD * (mu ** 2))) * F_HCD
+    HCD_auto_bias = HCD_linear_bias_and_wings ** 2
+    forest_HCD_cross_bias = 2. * forest_linear_bias * HCD_linear_bias_and_wings
+
+    return HCD_auto_bias + forest_HCD_cross_bias #+ forest_auto_bias
+
 def forest_non_linear_function(k, mu): #k in h / Mpc
     k_NL = 6.40
     alpha_NL = 0.569
@@ -164,7 +191,7 @@ def get_optimal_model_parameter_values(initial_param_values):
     return spo.minimize(fun, x0 = initial_param_values)
 
 if __name__ == "__main__":
-    power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_8_6_k_raw_max_1_pow_k_mu_binned.npz')
+    power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_7_unevenMu_k_raw_max_1_pow_k_mu_binned.npz')
     #power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_newMuK.npy')
     power_linear = power_linear_file['arr_0']
 
@@ -175,9 +202,9 @@ if __name__ == "__main__":
     beta_F_ensemble = [None] * n_realisations'''
 
     for i in range(n_realisations):
-        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_dodged_64_750_10_8_6_kMax_1.00.npz'
+        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_4_7_unevenMu_kMax_1.00.npz'
         #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_4_6_newMu_newK.npz'
-        power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_8_6_kMax_1.00.npz' #%(i+1)
+        power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_7_unevenMu_kMax_1.00.npz' #%(i+1)
         #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_newMu_newK.npz'
 
         power_file = np.load(power_file_name)
@@ -242,28 +269,28 @@ if __name__ == "__main__":
         print(np.sqrt(np.diag(param_covar)))'''
 
         #Sampling
-        n_params = 3
+        n_params = 5
         n_walkers = 100
         n_steps = 1000
         n_burn_in_steps = 200
-        prior_limits = np.array([[-0.2, 0.], [0., 1.6], [0., 70.]])
+        prior_limits = np.array([[-0.2, 0.], [0., 1.6], [0., 70.], [-10., 0.], [0., 10.]])
         '''b_F_weighted_true = -0.325
         beta_F_true = 1.663'''
 
         #starting_positions = [[-0.0195, 0.31, 24.341] + 1.e-4 * np.random.randn(n_params) for i in range(n_walkers)]
         starting_positions = get_starting_positions_in_uniform_prior(prior_limits, n_walkers)
-        samples, chains_without_burn_in = get_posterior_samples(lnlike_forest_HCD_linear_bias_and_wings_model, lnprior_forest_HCD_linear_bias_and_wings_model, (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions)
+        samples, chains_without_burn_in = get_posterior_samples(lnlike_forest_HCD_linear_bias_and_wings_model_fully_floated, lnprior_forest_HCD_linear_bias_and_wings_model_fully_floated, (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions)
         gelman_rubin_statistic = gelman_rubin_convergence_statistic(chains_without_burn_in)
         print(gelman_rubin_statistic)
 
         #Plotting
-        fig = co.corner(samples, labels = ['b_HCD', 'beta_HCD', 'L_HCD (Mpc / h)']) #, truths = [b_F_weighted_true,beta_F_true]) #[-0.325,1.663]
+        fig = co.corner(samples, labels = ['b_HCD', 'beta_HCD', 'L_HCD (Mpc / h)', 'b_F (1 + beta_F)', 'beta_F']) #, truths = [b_F_weighted_true,beta_F_true]) #[-0.325,1.663]
 
-        b_HCD, beta_HCD, L_HCD = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
-        print(b_HCD, beta_HCD, L_HCD)
+        b_HCD, beta_HCD, L_HCD, b_F, beta_F = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
+        print(b_HCD, beta_HCD, L_HCD, b_F, beta_F)
 
         n_dof = k_large_scales.size - n_params
-        print(-2. * lnlike_forest_HCD_linear_bias_and_wings_model([b_HCD[0], beta_HCD[0], L_HCD[0]], (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors) / n_dof)
+        print(-2. * lnlike_forest_HCD_linear_bias_and_wings_model([b_HCD[0], beta_HCD[0], L_HCD[0], b_F[0], beta_F[0]], (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors) / n_dof)
 
         print(np.sum(counts_binned))
         plt.show()
@@ -284,10 +311,10 @@ if __name__ == "__main__":
     cmap = plt.cm.jet
     '''cmaplist = [cmap(i) for i in range(cmap.N)]
     cmap = cmap.from_list('Custom cmap', cmaplist, cmap.N)'''
-    bounds = np.linspace(0,1,9)
-    #bounds = np.array([0.,0.5,0.8,0.95,1.])
+    #bounds = np.linspace(0,1,9)
+    bounds = np.array([0.,0.5,0.8,0.95,1.])
     norm = mpc.BoundaryNorm(bounds, cmap.N)
-    #line_colours = ['blue','cyan','yellow','brown']
+    line_colours = ['blue','cyan','yellow','brown']
     k_plot = np.linspace(0.08,1.,1000)
     #mu_plot = np.array([0.25,0.65,0.875,0.975])
 
@@ -296,10 +323,11 @@ if __name__ == "__main__":
         if i == bounds.shape[0] - 2:
             mu_plot = np.mean(mu_large_scales[mu_large_scales >= bounds[i]])
         print(mu_plot)
-        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model((k_plot,mu_plot),b_HCD[0],beta_HCD[0],L_HCD[0]), ls='--') #c=line_colours[i]
-        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model((k_plot, mu_plot), b_HCD[0] + b_HCD[1], beta_HCD[0] + beta_HCD[1], L_HCD[0] + L_HCD[1]), ls=':', lw=0.5) #c=line_colours[i]
-        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model((k_plot, mu_plot), b_HCD[0] - b_HCD[2], beta_HCD[0] - beta_HCD[2], L_HCD[0] - L_HCD[2]), ls='-.', lw=0.5) #c=line_colours[i]
+        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model_fully_floated((k_plot,mu_plot),b_HCD[0],beta_HCD[0],L_HCD[0],b_F[0],beta_F[0]), ls='--', c=line_colours[i])
+        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model_fully_floated((k_plot, mu_plot), b_HCD[0] + b_HCD[1], beta_HCD[0] + beta_HCD[1], L_HCD[0] + L_HCD[1], b_F[0] + b_F[1], beta_F[0] + beta_F[1]), ls=':', lw=0.5, c=line_colours[i])
+        plt.plot(k_plot, forest_HCD_linear_bias_and_wings_model_fully_floated((k_plot, mu_plot), b_HCD[0] - b_HCD[2], beta_HCD[0] - beta_HCD[2], L_HCD[0] - L_HCD[2], b_F[0] - b_F[2], beta_F[0] - beta_F[2]), ls='-.', lw=0.5, c=line_colours[i])
     #plt.errorbar(k_large_scales, power_ratio, yerr=power_ratio_errors*power_ratio*mh.sqrt(2), c=mu_large_scales, cmap=cmap, norm=norm, ls='')
+    plt.errorbar(k_large_scales, power_ratio, yerr=power_ratio_errors*power_ratio*mh.sqrt(2), ecolor='gray', ls='')
     plt.scatter(k_large_scales, power_ratio, c=mu_large_scales, cmap=cmap, norm=norm)
     plt.colorbar()
     plt.show()
