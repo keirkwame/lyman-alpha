@@ -19,7 +19,29 @@ if __name__ == "__main__":
     spectra_full_dir_path = sys.argv[5]
     model_cosmology_filename = sys.argv[6]
 
-    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra') #DLAs_LLS_dodged')
+    species_col_dens_lower_limit = 1.e+21 / (u.cm * u.cm)
+    species_col_dens_upper_limit = 1.e+30 / (u.cm * u.cm)
+
+    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
+    partially_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_DLAs_LLS_dodged')
+
+    max_col_densities = undodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
+    species_bool_arr = (max_col_densities <= species_col_dens_upper_limit) * (max_col_densities > species_col_dens_lower_limit)
+
+    dodged_optical_depth = partially_dodged_spectra_ins.get_optical_depth()
+    undodged_optical_depth = undodged_spectra_ins.get_optical_depth()
+    dodged_col_dens = partially_dodged_spectra_ins.get_column_density()
+    undodged_col_dens = undodged_spectra_ins.get_column_density()
+
+    partially_dodged_spectra_ins.spectra_instance.tau[(partially_dodged_spectra_ins.element, partially_dodged_spectra_ins.ion, int(partially_dodged_spectra_ins.line_wavelength.value))][species_bool_arr] = undodged_optical_depth[species_bool_arr]
+    partially_dodged_spectra_ins.spectra_instance.colden[(partially_dodged_spectra_ins.element, partially_dodged_spectra_ins.ion)][species_bool_arr] = undodged_col_dens[species_bool_arr]
+
+    partially_dodged_spectra_ins.spectra_instance.savefile = '%s/gridded_spectra_largeDLAs_forest_%i_%i.hdf5' %(spectra_full_dir_path,grid_width,int(spectral_res.value))
+    partially_dodged_spectra_ins.spectra_instance.save_file()
+
+    '''new_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_largeDLAs_LLS_forest')
+    new_max_col_densities = new_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
+    dodged_max_col_densities = partially_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()'''
 
     #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
 

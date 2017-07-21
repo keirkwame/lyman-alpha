@@ -89,6 +89,7 @@ class GaussianBox(Box):
         self._voigt_profile_skewers_bool_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
 
     def _gauss_realisation(self, power_evaluated, k_box):
+        print(power_evaluated)
         gauss_k=np.sqrt(0.5*power_evaluated)*(npr.standard_normal(size=power_evaluated.shape)+npr.standard_normal(size=power_evaluated.shape)*1.j)
         gauss_k[k_box == 0.] = 0. #Zeroing the mean
         gauss_k_hermitian = make_box_hermitian(gauss_k)

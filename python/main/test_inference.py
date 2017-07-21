@@ -29,7 +29,20 @@ if __name__ == "__main__":
         b = -0.122
         beta = 1.663
         #return np.array([0. * k_para.value, 0. * k_para.value, 0. * k_para.value, 0. * k_para.value, (b**2) + (0. * k_para.value)]) #Isotropic biased limit
-        return np.array([((b**2) * (beta**2)) + (0 * k_para.value), 0. * k_para.value, (2. * beta * (b**2)) + (0. * k_para.value), 0. * k_para.value, (b**2) + (0. * k_para.value)]) #Anisotropic biased limit
+        #return np.array([((b**2) * (beta**2)) + (0 * k_para.value), 0. * k_para.value, (2. * beta * (b**2)) + (0. * k_para.value), 0. * k_para.value, (b**2) + (0. * k_para.value)]) #Anisotropic biased limit
+
+        #BOSS model
+        b_HCD = -0.0288
+        beta_HCD = 0.681
+        L_HCD = 3.5 / 0.704 #Mpc
+
+        F_HCD = np.sinc(k_para.value * L_HCD / mh.pi) #** 2 #1. + (0. * k_para.value)
+
+        mu0_term = (2. * b * b_HCD * F_HCD) + ((b_HCD**2) * (F_HCD**2))
+        mu2_term = (2. * b * b_HCD * F_HCD * (beta + beta_HCD)) + ((b_HCD**2) * (F_HCD**2) * 2. * beta_HCD)
+        mu4_term = (2. * b * b_HCD * F_HCD * beta * beta_HCD) + ((b_HCD**2) * (F_HCD**2) * (beta_HCD**2))
+
+        return np.array([mu4_term, 0. * k_para.value, mu2_term, 0. * k_para.value, mu0_term])
 
     #Gaussian box instances
     test_gaussian_ins = box.GaussianBox(box_size, n_samp, redshift, H0, omega_m)
@@ -40,7 +53,7 @@ if __name__ == "__main__":
     mu_box = test_gaussian_ins.mu_box()
 
     #Binning
-    '''k_min = np.min(k_box[k_box > 0. / u.Mpc])
+    k_min = np.min(k_box[k_box > 0. / u.Mpc])
     k_max = k_max = 0.704 / u.Mpc #np.max(k_box)
     k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_k_bins - 1))) / u.Mpc
     k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_k_bins + 1)) / u.Mpc
@@ -51,7 +64,7 @@ if __name__ == "__main__":
     #Gaussian boxes
     test_gaussian_box = test_gaussian_ins.anisotropic_power_law_gauss_realisation(-3.,0.5 / u.Mpc,1.,mu_coefficients) #anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
     print('Here2')
-    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_anisotropic_biased_minus3_power_21_21_21_num1.npy',test_gaussian_box)
+    np.save('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/test_gaussian_box_anisotropic_scaleDepbiased3point5_minus3_power_21_21_21_num1.npy',test_gaussian_box)
     #test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_751_751_751.npy')
 
     print('Here3')
@@ -68,4 +81,4 @@ if __name__ == "__main__":
     #power_raw = fourier_estimator_instance.get_flux_power_3D()[0]
 
     np.savez(save_filename, power_bin, k_bin, bin_count, mu_bin, power_theory_binned)
-    #np.savez(save_filename, power_raw, k_box.value, np.absolute(mu_box.value))'''
+    #np.savez(save_filename, power_raw, k_box.value, np.absolute(mu_box.value))
