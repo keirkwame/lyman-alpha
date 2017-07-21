@@ -41,7 +41,8 @@ if __name__ == "__main__":
 
     '''new_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_largeDLAs_LLS_forest')
     new_max_col_densities = new_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
-    dodged_max_col_densities = partially_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()'''
+    dodged_max_col_densities = partially_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
+    new_optical_depth = new_dodged_spectra_ins.get_optical_depth()'''
 
     #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
 
