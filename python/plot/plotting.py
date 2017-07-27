@@ -11,12 +11,14 @@ from utils import *
 def make_plot_voigt_power_spectrum(f_name):
     spectrum_length = 92000 * u.km / u.s
     velocity_bin_width = 2.5 * u.km / u.s
-    col_den = [1.e+19, 1.e+20, 10.**(21.)] / (u.cm ** 2)
+    #col_den = [2.e+20, 5.e+20, 10.**(21.)] / (u.cm ** 2)
     sigma = [14., 14., 14.] * u.km / u.s
     gamma = [14., 14., 14.] * u.km / u.s
     amp = [10., 100., 1000.]
     mean_flux = 0.68 #CHECK!!!
-    n_curves = 3
+    n_curves = 100
+    col_den = np.linspace(1.e+21,1.e+22,n_curves) / (u.cm ** 2)
+    weights = (10**(-2.*np.log10(col_den.value))) * (10**19)
 
     '''contaminant_power_1D_f_names = [None] * 4
     contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
@@ -27,16 +29,22 @@ def make_plot_voigt_power_spectrum(f_name):
     '''
 
     optical_depth = [None] * n_curves
+    delta_flux_FT = [None] * n_curves
+    delta_flux = [None] * n_curves
 
     power_spectra = [None] * n_curves
     for i in range(n_curves):
-        power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples = voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i], sigma=sigma[i], gamma=gamma[i], amp=amp[i])
+        power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples, delta_flux_FT[i], delta_flux[i] = voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i]) #, sigma=sigma[i], gamma=gamma[i], amp=amp[i])
         power_spectra[i] = power_spectra[i][1:] * 10. * k_samples[1:] / mh.pi #/ contaminant_power_1D_z_4_43[2] / 9199
+
+        sign_correction_array = np.ones_like(delta_flux_FT[i].real)
+        sign_correction_array[::2] = -1.
+        delta_flux_FT[i] = delta_flux_FT[i] * sign_correction_array
     k_samples_list = [k_samples[1:],] * n_curves
 
-    plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name)
+    #plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name)
 
-    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples
+    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:], delta_flux_FT, delta_flux, weights, col_den
 
 def plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name):
     line_labels = [r'$\log N(\mathrm{HI}) = 19$', r'$\log N(\mathrm{HI}) = 20$', r'$\log N(\mathrm{HI}) = 21$']
@@ -458,7 +466,7 @@ if __name__ == "__main__":
     #make_plot_contaminant_power_absolute_1D(f_name, contaminant_power_1D_f_names)
 
     save_f_name = '/Users/keir/Documents/dla_papers/paper_1D/mcdonald_model_comparison2.png'
-    make_plot_model_1D_comparison(save_f_name)
+    #make_plot_model_1D_comparison(save_f_name)
 
     #make_plot_linear_flux_power_3D()
-    #vel_samps, tau, del_lambda_D, z, wavelength_samples = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
+    vel_samps, tau, del_lambda_D, z, wavelength_samples, power_spectra, k_samps, delta_flux_FT, delta_flux, weights, col_den = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')

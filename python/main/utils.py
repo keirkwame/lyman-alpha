@@ -112,9 +112,13 @@ def voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_
         optical_depth = voigt_amplified(velocity_samples, sigma, gamma, amp, 0. * u.km / u.s)
     flux = np.exp(-1. * optical_depth.value)
     delta_flux = flux / mean_flux - 1.
+
+    '''delta_flux = np.zeros_like(flux)
+    delta_flux[(velocity_samples > -100. * u.km / u.s) * (velocity_samples < 100. * u.km / u.s)] = 1'''
+
     delta_flux_FT = np.fft.rfft(delta_flux) / delta_flux.shape[0]
     k_samples = np.fft.rfftfreq(delta_flux.shape[0], d = velocity_bin_width) * 2. * mh.pi
-    return (np.real(delta_flux_FT)**2 + np.imag(delta_flux_FT)**2) * spectrum_length, k_samples, velocity_samples, optical_depth, del_lambda_D, z, wavelength_samples
+    return (np.real(delta_flux_FT)**2 + np.imag(delta_flux_FT)**2) * spectrum_length, k_samples, velocity_samples, optical_depth, del_lambda_D, z, wavelength_samples, delta_flux_FT, delta_flux
 
 def _set_real_values_in_hermitian_box(box,x,y,z):
     box[0, 0, 0] = np.real(box[0, 0, 0]) * mh.sqrt(2.)  # Force mean mode to be real - PROBS NEED TO * SQRT(2)
