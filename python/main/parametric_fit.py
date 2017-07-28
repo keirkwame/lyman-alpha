@@ -91,8 +91,8 @@ def lnprior_forest_HCD_linear_bias_and_wings_model_fully_floated(param_array):
         return -np.inf
 
 def lnprior_forest_HCD_linear_bias_and_Voigt_wings_model(param_array):
-    if -0.008 < param_array[0] < 0. and 0. < param_array[1] < 1.6 and 0. < param_array[4] < 15. and -10. < param_array[2] < 0. and 0. < param_array[3] < 10. and 0. < param_array[5] < 0.6 and 0. < param_array[6] < 0.004: #b_HCD; beta_HCD; L_HCD
-        return (-0.5 * (((param_array[1] - 0.5) / 0.2)**2)) + (-0.5 * (((param_array[2] - -0.267) / 0.004)**2)) + (-0.5 * (((param_array[3] - 1.617) / 0.068)**2)) #-0.267; 1.617; 0.004; 0.068
+    if -0.014 < param_array[0] < 0. and 0. < param_array[1] < 1.2 and 1. < param_array[4] < 7. and -10. < param_array[2] < 0. and 0. < param_array[3] < 10. and 0. < param_array[5] < 0.6 and 0. < param_array[6] < 0.004: #b_HCD; beta_HCD; L_HCD
+        return (-0.5 * (((param_array[1] - 0.7) / 0.2)**2)) + (-0.5 * (((param_array[2] - -0.267) / 0.004)**2)) + (-0.5 * (((param_array[3] - 1.617) / 0.068)**2)) #-0.267; 1.617; 0.004; 0.068
     else:
         return -np.inf
 
@@ -167,18 +167,23 @@ def forest_HCD_linear_bias_and_wings_model_fully_floated(k_mu_tuple, b_HCD, beta
     return HCD_auto_bias + forest_HCD_cross_bias #+ forest_auto_bias
 
 def forest_HCD_linear_bias_and_Voigt_wings_model(k_mu_tuple, b_HCD, beta_HCD, b_F_weighted, beta_F, L, a, b):
+    '''b_HCD = -0.007
+    beta_HCD = 0.9
+    L = 6.
+    a = 0.25
+    b = 0.0018'''
+    b_F_weighted = -0.267
+    beta_F = 1.617
+
     #b_F = -0.102 #-0.122 #-0.09764619
     #beta_F = 1.617 #1.663 #1.72410826
     b_F = b_F_weighted / (1. + beta_F)
 
     (k, mu) = k_mu_tuple
 
-    #b_HCD = -0.007
-    #beta_HCD = 0.4
-    #L = 8.
-
     #F_HCD = 1. / (np.exp((k - 0.25) * L / 0.25) + 1)
-    F_HCD = np.sinc(k * mu * L / mh.pi) * np.exp(((k * mu) ** 0.01) / (-1. * a)) #* np.sinc(k * mu * a / mh.pi) #L = 11.
+    #F_HCD = np.sinc(k * mu * L / mh.pi) #* np.sinc(k * mu * a / mh.pi)) / 2.
+    F_HCD = np.sinc(k * mu * L / mh.pi) * np.exp((((k * 1.) ** 1.) * (mu ** 1.)) / (-1. * a)) #* np.sinc(k * mu * a / mh.pi) #L = 11.
     ##F_HCD = np.sin(k * mu * L_HCD) / (k * mu * L_HCD)
     forest_linear_bias = b_F * (1. + (beta_F * (mu ** 2)))
     forest_auto_bias = forest_linear_bias ** 2
@@ -186,7 +191,7 @@ def forest_HCD_linear_bias_and_Voigt_wings_model(k_mu_tuple, b_HCD, beta_HCD, b_
     HCD_auto_bias = HCD_linear_bias_and_wings ** 2
     forest_HCD_cross_bias = 2. * forest_linear_bias * HCD_linear_bias_and_wings
 
-    return forest_HCD_cross_bias + HCD_auto_bias - (b * (k ** 1) * (mu ** 2))
+    return forest_HCD_cross_bias + HCD_auto_bias - (b * (mu ** 2.) * (k ** 0.2)) #- (b * (k ** 0.5) * (mu ** 2))
 
 def forest_non_linear_function(k, mu): #k in h / Mpc
     k_NL = 6.40
@@ -239,7 +244,7 @@ if __name__ == "__main__":
     beta_F_ensemble = [None] * n_realisations
 
     for i in range(n_realisations):
-        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_largeDLAs_forest_64_750_10_4_7_unevenMu_kMax_1.00.npz'
+        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_smallDLAs_forest_64_750_10_4_7_unevenMu_kMax_1.00.npz'
         #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_undodged_64_750_10_4_6_newMu_newK.npz'
         #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/test_anisotropic_scaleDepbiased3point5_minus3_power_21samples_bin_8_15_num%i.npz' %(i+1)
         power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_7_unevenMu_kMax_1.00.npz' #%(i+1)
@@ -313,7 +318,7 @@ if __name__ == "__main__":
         n_walkers = 100
         n_steps = 1000
         n_burn_in_steps = 200
-        prior_limits = np.array([[-0.008, 0.], [0., 1.6], [-10., 0.], [0., 10.], [0., 15.], [0., 0.6], [0., 0.004]])
+        prior_limits = np.array([[-0.014, 0.], [0., 1.2], [-10., 0.], [0., 10.], [1., 7.], [0., 0.6], [0., 0.004]])
         '''b_F_weighted_true = -0.325
         beta_F_true = 1.663'''
 
@@ -379,6 +384,12 @@ if __name__ == "__main__":
     plt.errorbar(k_large_scales, power_ratio, yerr=power_ratio_errors*power_ratio*mh.sqrt(2), ecolor='gray', ls='')
     plt.scatter(k_large_scales, power_ratio, c=mu_large_scales, cmap=cmap, norm=norm)
     plt.colorbar()
+
+    plt.xscale('log')
+    plt.xlim([8.e-2, 1.])
+    plt.ylim([-0.004, 0.004])
+    plt.axhline(y = 0., color = 'black', lw = 0.5, ls = ':')
+
     plt.show()
 
     '''z = np.array([2.0, 2.44, 3.49, 4.43])  # shape Nz
