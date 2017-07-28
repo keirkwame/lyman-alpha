@@ -22,7 +22,7 @@ if __name__ == "__main__":
     '''species_col_dens_lower_limit = 1.6e+17 / (u.cm * u.cm)
     species_col_dens_upper_limit = 1.e+19 / (u.cm * u.cm)'''
 
-    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
+    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=True, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
     #partially_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_DLAs_LLS_dodged')
 
     '''max_col_densities = undodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
@@ -69,10 +69,11 @@ if __name__ == "__main__":
 
     #np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power.npz',power_binned,k_binned,bin_counts) #,model_power_binned)
 
-    '''print("Finished")
+    print("Finished")
     column_density = undodged_spectra_ins.get_column_density()
     print("Finished calculating column densities")
-    optical_depth = undodged_spectra_ins.get_optical_depth()'''
+    optical_depth = undodged_spectra_ins.get_optical_depth()
+    print("Finished calculating optical depths")
 
     col_den_thresh = 1.6e+17 / (u.cm * u.cm)
     dodge_dist = 10. * u.kpc
