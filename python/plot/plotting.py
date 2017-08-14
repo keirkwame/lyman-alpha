@@ -9,16 +9,39 @@ from parametric_fit import *
 from utils import *
 
 def make_plot_voigt_power_spectrum(f_name):
-    spectrum_length = 92000 * u.km / u.s
+    spectrum_length = 920000 * u.km / u.s
     velocity_bin_width = 2.5 * u.km / u.s
     #col_den = [2.e+20, 5.e+20, 10.**(21.)] / (u.cm ** 2)
     sigma = [14., 14., 14.] * u.km / u.s
     gamma = [14., 14., 14.] * u.km / u.s
     amp = [10., 100., 1000.]
-    mean_flux = 0.68 #CHECK!!!
-    n_curves = 100
-    col_den = np.linspace(1.e+21,1.e+22,n_curves) / (u.cm ** 2)
-    weights = (10**(-2.*np.log10(col_den.value))) * (10**19)
+    mean_flux = 0.675940542622 #0.68 #CHECK!!!
+    n_curves = 2
+    #col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
+    #weights = (10**(-2.*np.log10(col_den.value))) * (10**19) #LOOK UP PARAMETERISED CDDF
+    weights = 1.
+    col_den_min = 1.e+21 / (u.cm ** 2)
+    col_den_max = 10.**21.27 / (u.cm ** 2)
+    col_den_max_2 = 1.e+22 / (u.cm ** 2)
+
+    k_d = -23.09
+    #k_d = -22.41 #Sub-DLAs
+    N_d = 21.27
+    #N_d = 20.90 #Sub-DLAs
+    alpha_d_low_col_den = -1.60 #N < 21.27
+    #alpha_d_low_col_den = -1.13 #Sub-DLAs
+    alpha_d_high_col_den = -3.48 #N >= 21.27
+    #weights = 10. ** (k_d + (alpha_d_low_col_den * (np.log10(col_den.value) - N_d)))
+    #weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))
+
+    colden_numer =((col_den_max**(alpha_d_low_col_den+2))-(col_den_min**(alpha_d_low_col_den+2)))*(alpha_d_low_col_den+1)
+    colden_denom =((col_den_max**(alpha_d_low_col_den+1))-(col_den_min**(alpha_d_low_col_den+1)))*(alpha_d_low_col_den+2)
+
+    colden_numer_2 = ((col_den_max_2**(alpha_d_high_col_den+2))-(col_den_max**(alpha_d_high_col_den+2)))*(alpha_d_high_col_den+1)
+    colden_denom_2 = ((col_den_max_2 ** (alpha_d_high_col_den + 1)) - (col_den_max ** (alpha_d_high_col_den + 1))) * (alpha_d_high_col_den + 2)
+
+    #col_den = [colden_numer / colden_denom, 1.e+21 / (u.cm ** 2)]
+    col_den = [(colden_numer / colden_denom) + (colden_numer_2 / colden_denom_2), 1.e+21 / (u.cm ** 2)]
 
     '''contaminant_power_1D_f_names = [None] * 4
     contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
@@ -44,7 +67,10 @@ def make_plot_voigt_power_spectrum(f_name):
 
     #plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name)
 
-    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:], delta_flux_FT, delta_flux, weights, col_den
+    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:] * (7501. * u.km / u.s / (75. * u.Mpc)), delta_flux_FT, delta_flux, weights, col_den #k in h / Mpc
+
+#def voigt_F_HCD(k_parallel, col_den_min, col_den_max):
+
 
 def plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name):
     line_labels = [r'$\log N(\mathrm{HI}) = 19$', r'$\log N(\mathrm{HI}) = 20$', r'$\log N(\mathrm{HI}) = 21$']
