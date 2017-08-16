@@ -20,8 +20,8 @@ def make_plot_voigt_power_spectrum(f_name):
     #col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
     #weights = (10**(-2.*np.log10(col_den.value))) * (10**19) #LOOK UP PARAMETERISED CDDF
     weights = 1.
-    col_den_min = 1.e+21 / (u.cm ** 2)
-    col_den_max = 10.**21.27 / (u.cm ** 2)
+    col_den_min = 2.e+20 / (u.cm ** 2)
+    col_den_max = 1.e+21 / (u.cm ** 2)
     col_den_max_2 = 1.e+22 / (u.cm ** 2)
 
     k_d = -23.09
@@ -40,8 +40,8 @@ def make_plot_voigt_power_spectrum(f_name):
     colden_numer_2 = ((col_den_max_2**(alpha_d_high_col_den+2))-(col_den_max**(alpha_d_high_col_den+2)))*(alpha_d_high_col_den+1)
     colden_denom_2 = ((col_den_max_2 ** (alpha_d_high_col_den + 1)) - (col_den_max ** (alpha_d_high_col_den + 1))) * (alpha_d_high_col_den + 2)
 
-    #col_den = [colden_numer / colden_denom, 1.e+21 / (u.cm ** 2)]
-    col_den = [(colden_numer / colden_denom) + (colden_numer_2 / colden_denom_2), 1.e+21 / (u.cm ** 2)]
+    col_den = [colden_numer / colden_denom, (10.**21.19) / (u.cm ** 2)]
+    #col_den = [(colden_numer / colden_denom) + (colden_numer_2 / colden_denom_2), 1.e+21 / (u.cm ** 2)]
 
     '''contaminant_power_1D_f_names = [None] * 4
     contaminant_power_1D_f_names[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_068/contaminant_power_1D_z_2_00.npy'
