@@ -1,5 +1,6 @@
 import math as mh
 import numpy as np
+import scipy.integrate as spi
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tic
 import astropy.units as u
@@ -9,17 +10,17 @@ from parametric_fit import *
 from utils import *
 
 def make_plot_voigt_power_spectrum(f_name):
-    spectrum_length = 920000 * u.km / u.s
+    spectrum_length = 500000 * u.km / u.s #92000 * u.km / u.s
     velocity_bin_width = 2.5 * u.km / u.s
     #col_den = [2.e+20, 5.e+20, 10.**(21.)] / (u.cm ** 2)
     sigma = [14., 14., 14.] * u.km / u.s
     gamma = [14., 14., 14.] * u.km / u.s
     amp = [10., 100., 1000.]
     mean_flux = 0.675940542622 #0.68 #CHECK!!!
-    n_curves = 2
-    #col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
+    n_curves = 100
+    col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
     #weights = (10**(-2.*np.log10(col_den.value))) * (10**19) #LOOK UP PARAMETERISED CDDF
-    weights = 1.
+    #weights = 1.
     col_den_min = 2.e+20 / (u.cm ** 2)
     col_den_max = 1.e+21 / (u.cm ** 2)
     col_den_max_2 = 1.e+22 / (u.cm ** 2)
@@ -31,16 +32,16 @@ def make_plot_voigt_power_spectrum(f_name):
     alpha_d_low_col_den = -1.60 #N < 21.27
     #alpha_d_low_col_den = -1.13 #Sub-DLAs
     alpha_d_high_col_den = -3.48 #N >= 21.27
-    #weights = 10. ** (k_d + (alpha_d_low_col_den * (np.log10(col_den.value) - N_d)))
+    weights = 10. ** (k_d + (alpha_d_low_col_den * (np.log10(col_den.value) - N_d)))
     #weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))
 
-    colden_numer =((col_den_max**(alpha_d_low_col_den+2))-(col_den_min**(alpha_d_low_col_den+2)))*(alpha_d_low_col_den+1)
+    '''colden_numer =((col_den_max**(alpha_d_low_col_den+2))-(col_den_min**(alpha_d_low_col_den+2)))*(alpha_d_low_col_den+1)
     colden_denom =((col_den_max**(alpha_d_low_col_den+1))-(col_den_min**(alpha_d_low_col_den+1)))*(alpha_d_low_col_den+2)
 
     colden_numer_2 = ((col_den_max_2**(alpha_d_high_col_den+2))-(col_den_max**(alpha_d_high_col_den+2)))*(alpha_d_high_col_den+1)
-    colden_denom_2 = ((col_den_max_2 ** (alpha_d_high_col_den + 1)) - (col_den_max ** (alpha_d_high_col_den + 1))) * (alpha_d_high_col_den + 2)
+    colden_denom_2 = ((col_den_max_2 ** (alpha_d_high_col_den + 1)) - (col_den_max ** (alpha_d_high_col_den + 1))) * (alpha_d_high_col_den + 2)'''
 
-    col_den = [colden_numer / colden_denom, (10.**21.19) / (u.cm ** 2)]
+    #col_den = [colden_numer / colden_denom, 2.e+20 / (u.cm ** 2), 1.e+21 / (u.cm ** 2)]
     #col_den = [(colden_numer / colden_denom) + (colden_numer_2 / colden_denom_2), 1.e+21 / (u.cm ** 2)]
 
     '''contaminant_power_1D_f_names = [None] * 4
@@ -57,6 +58,7 @@ def make_plot_voigt_power_spectrum(f_name):
 
     power_spectra = [None] * n_curves
     for i in range(n_curves):
+        print(i)
         power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples, delta_flux_FT[i], delta_flux[i] = voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i]) #, sigma=sigma[i], gamma=gamma[i], amp=amp[i])
         power_spectra[i] = power_spectra[i][1:] * 10. * k_samples[1:] / mh.pi #/ contaminant_power_1D_z_4_43[2] / 9199
 
@@ -67,7 +69,14 @@ def make_plot_voigt_power_spectrum(f_name):
 
     #plot_voigt_power_spectrum(k_samples_list, power_spectra, f_name)
 
-    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:] * (7501. * u.km / u.s / (75. * u.Mpc)), delta_flux_FT, delta_flux, weights, col_den #k in h / Mpc
+    #Integration
+    equivalent_widths = spi.trapz(1. - np.exp(-1. * np.array(optical_depth)), wavelength_samples.value, axis=1) / 1215.67
+
+    F_Voigt_numer = spi.trapz(np.array(delta_flux_FT) * weights[:,np.newaxis],col_den.value,axis=0)
+    F_Voigt_denom = spi.trapz(weights * equivalent_widths,col_den.value)
+    F_Voigt = F_Voigt_numer / F_Voigt_denom
+
+    return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:] * (7501. * u.km / u.s / (75. * u.Mpc)), delta_flux_FT, delta_flux, weights, col_den, F_Voigt, equivalent_widths #k in h / Mpc
 
 #def voigt_F_HCD(k_parallel, col_den_min, col_den_max):
 
@@ -495,4 +504,4 @@ if __name__ == "__main__":
     #make_plot_model_1D_comparison(save_f_name)
 
     #make_plot_linear_flux_power_3D()
-    vel_samps, tau, del_lambda_D, z, wavelength_samples, power_spectra, k_samps, delta_flux_FT, delta_flux, weights, col_den = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
+    vel_samps, tau, del_lambda_D, z, wavelength_samples, power_spectra, k_samps, delta_flux_FT, delta_flux, weights, col_den, F_Voigt, equiv_widths = make_plot_voigt_power_spectrum('/Users/keir/Documents/dla_papers/paper_1D/voigt_power_spectrum.pdf')
