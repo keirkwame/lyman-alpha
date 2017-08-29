@@ -72,11 +72,15 @@ if __name__ == "__main__":
     print("Finished")
     column_density = undodged_spectra_ins.get_column_density()
     print("Finished calculating column densities")
-    optical_depth = undodged_spectra_ins.get_optical_depth()
-    print("Finished calculating optical depths")
+    '''optical_depth = undodged_spectra_ins.get_optical_depth()
+    print("Finished calculating optical depths")'''
 
     '''col_den_thresh = 1.6e+17 / (u.cm * u.cm)
     dodge_dist = 10. * u.kpc
     dodged_spectra_savefile_root = 'gridded_spectra_DLAs_LLS_dodged'
 
     undodged_spectra_ins.form_skewers_realisation_dodging_DLAs(col_dens_threshold=col_den_thresh, dodge_dist=dodge_dist, savefile_root=dodged_spectra_savefile_root)'''
+
+    cddf, col_den_bin_edges = np.histogram(column_density.value,bins=10. ** np.linspace(np.log10(1.6e+17), np.log10(np.max(column_density.value)), 1000),range=(1.6e+17, np.max(column_density.value)))
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/CDDF.npy',cddf)
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/CDDF_bin_edges.npy',col_den_bin_edges)
