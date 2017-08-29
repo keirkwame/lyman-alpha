@@ -111,6 +111,7 @@ def voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_
     else:
         optical_depth = voigt_amplified(velocity_samples, sigma, gamma, amp, 0. * u.km / u.s)
     flux = np.exp(-1. * optical_depth.value)
+    #flux = np.exp(-5.e-19 * column_density.value / (((velocity_samples.value + 1.e-30) / (7501. / 75.) / 0.704) ** 2))
     delta_flux = flux / mean_flux - 1.
 
     '''delta_flux = np.zeros_like(flux)

@@ -7,23 +7,32 @@ import astropy.units as u
 import distinct_colours_py3 as dc
 
 from parametric_fit import *
-from utils import *
+import utils as uti
 
 def make_plot_voigt_power_spectrum(f_name):
-    spectrum_length = 500000 * u.km / u.s #92000 * u.km / u.s
-    velocity_bin_width = 2.5 * u.km / u.s
+    col_den_min = 1.e+21
+    col_den_max = 1.e+30
+
+    cddf = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/CDDF.npy')
+    col_den_bin_edges = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/CDDF_bin_edges.npy')
+    col_den_samples = np.mean(np.vstack((col_den_bin_edges[:-1],col_den_bin_edges[1:])),axis=0)
+    col_den = col_den_samples[(col_den_samples >= col_den_min) * (col_den_samples < col_den_max)] / (u.cm ** 2)
+    weights = cddf[(col_den_samples >= col_den_min) * (col_den_samples < col_den_max)]
+
+    spectrum_length = 5000000 * u.km / u.s #92000 * u.km / u.s
+    velocity_bin_width = 25 * u.km / u.s
     #col_den = [2.e+20, 5.e+20, 10.**(21.)] / (u.cm ** 2)
     sigma = [14., 14., 14.] * u.km / u.s
     gamma = [14., 14., 14.] * u.km / u.s
     amp = [10., 100., 1000.]
     mean_flux = 0.675940542622 #0.68 #CHECK!!!
-    n_curves = 100
-    col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
+    n_curves = col_den.shape[0]
+    #col_den = np.linspace(2.e+20,1.e+21,n_curves) / (u.cm ** 2)
     #weights = (10**(-2.*np.log10(col_den.value))) * (10**19) #LOOK UP PARAMETERISED CDDF
     #weights = 1.
-    col_den_min = 2.e+20 / (u.cm ** 2)
+    '''col_den_min = 2.e+20 / (u.cm ** 2)
     col_den_max = 1.e+21 / (u.cm ** 2)
-    col_den_max_2 = 1.e+22 / (u.cm ** 2)
+    col_den_max_2 = 1.e+22 / (u.cm ** 2)'''
 
     k_d = -23.09
     #k_d = -22.41 #Sub-DLAs
@@ -33,7 +42,7 @@ def make_plot_voigt_power_spectrum(f_name):
     #alpha_d_low_col_den = -1.13 #Sub-DLAs
     alpha_d_high_col_den = -3.48 #N >= 21.27
     weights = 10. ** (k_d + (alpha_d_low_col_den * (np.log10(col_den.value) - N_d)))
-    #weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))
+    weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))
 
     '''colden_numer =((col_den_max**(alpha_d_low_col_den+2))-(col_den_min**(alpha_d_low_col_den+2)))*(alpha_d_low_col_den+1)
     colden_denom =((col_den_max**(alpha_d_low_col_den+1))-(col_den_min**(alpha_d_low_col_den+1)))*(alpha_d_low_col_den+2)
@@ -59,7 +68,7 @@ def make_plot_voigt_power_spectrum(f_name):
     power_spectra = [None] * n_curves
     for i in range(n_curves):
         print(i)
-        power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples, delta_flux_FT[i], delta_flux[i] = voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i]) #, sigma=sigma[i], gamma=gamma[i], amp=amp[i])
+        power_spectra[i], k_samples, vel_samples, optical_depth[i], del_lambda_D, z, wavelength_samples, delta_flux_FT[i], delta_flux[i] = uti.voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_density=col_den[i]) #, sigma=sigma[i], gamma=gamma[i], amp=amp[i])
         power_spectra[i] = power_spectra[i][1:] * 10. * k_samples[1:] / mh.pi #/ contaminant_power_1D_z_4_43[2] / 9199
 
         sign_correction_array = np.ones_like(delta_flux_FT[i].real)
@@ -73,8 +82,9 @@ def make_plot_voigt_power_spectrum(f_name):
     equivalent_widths = spi.trapz(1. - np.exp(-1. * np.array(optical_depth)), wavelength_samples.value, axis=1) / 1215.67
 
     F_Voigt_numer = spi.trapz(np.array(delta_flux_FT) * weights[:,np.newaxis],col_den.value,axis=0)
-    F_Voigt_denom = spi.trapz(weights * equivalent_widths,col_den.value)
-    F_Voigt = F_Voigt_numer / F_Voigt_denom
+    F_Voigt_denom = spi.trapz(weights,col_den.value) #* equivalent_widths
+    F_Voigt = F_Voigt_numer #/ F_Voigt_denom
+    #F_Voigt = np.fft.rfft(F_Voigt) / F_Voigt.shape[0] * sign_correction_array
 
     return vel_samples, optical_depth, del_lambda_D, z, wavelength_samples, power_spectra, k_samples[1:] * (7501. * u.km / u.s / (75. * u.Mpc)), delta_flux_FT, delta_flux, weights, col_den, F_Voigt, equivalent_widths #k in h / Mpc
 
