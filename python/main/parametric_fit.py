@@ -80,7 +80,7 @@ def lnlike_forest_HCD_linear_bias_and_sinc_model(param_array, x, y, yerr):
     return -0.5 * np.sum(((y - model_evaluation)**2) / ((yerr * errorbar_amp_evaluation * mh.sqrt(2.))**2))
 
 def lnlike_forest_HCD_linear_bias_and_parametric_wings_model(param_array, x, y, yerr, power_linear=None):
-    k_max = 0.25
+    k_max = 1.
     mu_max = 0.
     slice_array = np.logical_not((x[0] > k_max) * (x[1] > mu_max))
     #print(slice_array.shape)
@@ -128,8 +128,8 @@ def lnprior_forest_HCD_linear_bias_and_sinc_model(param_array):
         return -np.inf
 
 def lnprior_forest_HCD_linear_bias_and_parametric_wings_model(param_array): #Also for joint analysis
-    if -10. < param_array[0] < 0. and 0. < param_array[1] < 10. and -0.05 < param_array[2] < 0. and 0. < param_array[3] < 2. and -1.e-30 < param_array[4] < 1.e-30 and -1.e-30 < param_array[5] < 1.e-30: #and -10. < param_array[2] < 0. and 0. < param_array[3] < 10. and -1.e-30 < param_array[4] < 1.e-30
-        return (-0.5 * (((param_array[3] - 0.7) / 0.2)**2)) #+ (-0.5 * (((param_array[2] - -0.016) / 0.005)**2)) #+ (-0.5 * (((param_array[4] - 0.4) / 0.2)**2)) + (-0.5 * (((param_array[5] - 0.25) / 0.15)**2)) #+ (-0.5 * (((param_array[2] - -0.267) / 0.004)**2)) + (-0.5 * (((param_array[3] - 1.617) / 0.068)**2))
+    if -10. < param_array[0] < 0. and 0. < param_array[1] < 10. and -0.02 < param_array[2] < 0. and 0. < param_array[3] < 2. and -1.e-30 < param_array[4] < 1.e-30 and -1.e-30 < param_array[5] < 1.e-30: #and -10. < param_array[2] < 0. and 0. < param_array[3] < 10. and -1.e-30 < param_array[4] < 1.e-30
+        return (-0.5 * (((param_array[3] - 0.7) / 0.2)**2)) + (-0.5 * (((param_array[2] - -0.003) / 0.001)**2)) #+ (-0.5 * (((param_array[4] - 0.4) / 0.2)**2)) + (-0.5 * (((param_array[5] - 0.25) / 0.15)**2)) #+ (-0.5 * (((param_array[2] - -0.267) / 0.004)**2)) + (-0.5 * (((param_array[3] - 1.617) / 0.068)**2))
     else:
         return -np.inf
 
@@ -251,8 +251,8 @@ def forest_HCD_linear_bias_and_Voigt_wings_model_errorbars(k_mu_tuple, b_HCD, be
     return forest_auto_bias + forest_HCD_linear_bias_and_Voigt_wings_model(k_mu_tuple,b_HCD,beta_HCD,b_F_weighted,beta_F,plot=plot)
 
 def forest_HCD_linear_bias_and_sinc_model(k_mu_tuple, b_HCD, beta_HCD, b_F_weighted, beta_F, L_HCD):
-    b_F_weighted = -0.267
-    beta_F = 1.617
+    '''b_F_weighted = -0.267
+    beta_F = 1.617'''
 
     b_F = b_F_weighted / (1. + beta_F)
 
@@ -267,8 +267,8 @@ def forest_HCD_linear_bias_and_sinc_model(k_mu_tuple, b_HCD, beta_HCD, b_F_weigh
     return forest_HCD_cross_bias + HCD_auto_bias
 
 def forest_HCD_linear_bias_and_sinc_model_full(k_mu_tuple, b_HCD, beta_HCD, b_F_weighted, beta_F, L_HCD):
-    b_F_weighted = -0.267
-    beta_F = 1.617
+    '''b_F_weighted = -0.267
+    beta_F = 1.617'''
 
     b_F = b_F_weighted / (1. + beta_F)
 
@@ -293,13 +293,13 @@ def forest_HCD_linear_bias_and_parametric_wings_model(k_mu_tuple, b_F_weighted, 
 
     if F_Voigt == None:
         if plot == False:
-            F_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_large_DLAs_interpolated_data_CDDF_bin_4_6_evenMu.txt')[:,1]
+            F_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_sub_DLAs_interpolated_sim_CDDF_bin_4_6_evenMu.txt')[:,1]
             #F_Voigt = F_Voigt[np.array([True, False, False, True, False, False, False, True, False, False, False, True, False, False, False, True, False, False, False])]
             #F_Voigt = F_Voigt[np.array([True, False, False, True, True, False, False, True, True, False, False, True, True, False, False, True, True, False, False])]
             #F_Voigt = F_Voigt[np.array([True,  True, False,  True,  True,  True, False,  True,  True, True, False,  True,  True,  True, False,  True,  True,  True, False])]
             #F_Voigt[(k * mu) < 1.e-2] = 1.
         elif plot == True:
-            k_F_HCD_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_large_DLAs_data_CDDF_short.txt')
+            k_F_HCD_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_sub_DLAs_sim_CDDF_short.txt')
             Voigt_interpolating_function = spp.interp1d(k_F_HCD_Voigt[:8000:50,0],k_F_HCD_Voigt[:8000:50,1],kind='cubic')
             F_Voigt = np.ones_like(k)
             F_Voigt[(k * mu) > k_F_HCD_Voigt[0,0]] = Voigt_interpolating_function((k * mu)[k * mu > k_F_HCD_Voigt[0,0]])
@@ -376,7 +376,7 @@ def get_optimal_model_parameter_values(initial_param_values):
     return spo.minimize(fun, x0 = initial_param_values)
 
 if __name__ == "__main__":
-    power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_evenMu_k_raw_max_1_pow_k_not_binned.npz')
+    power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_3_49_snap57_750_10_4_6_evenMu_k_raw_max_1_pow_k_mu_binned.npz')
     #power_linear_file = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_kMax1.npy')
     power_linear = power_linear_file['arr_0']
 
@@ -395,9 +395,9 @@ if __name__ == "__main__":
 
     for i in range(n_realisations):
         #power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_smallDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz'
-        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_largeDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz'
+        power_file_name = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_subDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz'
         #power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz'
-        power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz'
+        power_file_name_dodged = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_DLAs_LLS_dodged_57_750_10_4_6_evenMu_kMax_1.00.npz'
 
         power_file = np.load(power_file_name)
         power_file_dodged = np.load(power_file_name_dodged)
@@ -436,7 +436,7 @@ if __name__ == "__main__":
         n_walkers = 100
         n_steps = 500
         n_burn_in_steps = 100
-        prior_limits = np.array([[-10., 0.], [0., 10.], [-0.05, 0.], [0., 2.], [-1.e-30, 1.e-30], [-1.e-30, 1.e-30]])
+        prior_limits = np.array([[-10., 0.], [0., 10.], [-0.02, 0.], [0., 2.], [-1.e-30, 1.e-30], [-1.e-30, 1.e-30]])
 
         starting_positions = get_starting_positions_in_uniform_prior(prior_limits, n_walkers)
         samples, chains_without_burn_in, sampler = get_posterior_samples(lnlike_joint, lnprior_forest_HCD_linear_bias_and_parametric_wings_model, [k_large_scales, mu_large_scales], power_array, power_ratio_errors, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions, power_linear=power_theory_binned)
@@ -450,7 +450,7 @@ if __name__ == "__main__":
         b_F, beta_F, b_HCD, beta_HCD, k_a, b = map(lambda v: (v[1], v[2] - v[1], v[1] - v[0]), zip(*np.percentile(samples, [16, 50, 84], axis = 0)))
         print(b_F, beta_F, b_HCD, beta_HCD, k_a, b)
 
-        n_dof = (k_large_scales.size * 2.) - 4. - 12. #n_params
+        n_dof = (k_large_scales.size * 2.) - 4. #- 12. #n_params
         #print(-2. * lnlike_forest_HCD_linear_bias_and_parametric_wings_model([b_HCD[0], beta_HCD[0], k_a[0], b[0]], (k_large_scales, mu_large_scales), power_ratio, power_ratio_errors) / n_dof)
         print(-2. * lnlike_joint([b_F[0], beta_F[0], b_HCD[0], beta_HCD[0], k_a[0], b[0]],[k_large_scales, mu_large_scales], power_array, power_ratio_errors, power_linear=power_theory_binned) / n_dof)
         #print(-2. * lnlike_forest_linear_bias_model([b_F[0], beta_F[0]], (k_large_scales, mu_large_scales), power_ratio_dodged, power_ratio_errors) / n_dof)
@@ -508,7 +508,7 @@ if __name__ == "__main__":
             mu_plot = np.mean(mu_large_scales[mu_large_scales >= bounds[i]])
         print(mu_plot)
 
-        k_F_HCD_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_large_DLAs_data_CDDF_short.txt')
+        k_F_HCD_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/k_h_Mpc_F_HCD_Voigt_sub_DLAs_sim_CDDF_short.txt')
         Voigt_interpolating_function = spp.interp1d(k_F_HCD_Voigt[:8000:50, 0], k_F_HCD_Voigt[:8000:50, 1], kind='cubic')
         F_Voigt[i] = np.ones_like(k_plot)
         F_Voigt[i][(k_plot * mu_plot) > k_F_HCD_Voigt[0, 0]] = Voigt_interpolating_function((k_plot * mu_plot)[k_plot * mu_plot > k_F_HCD_Voigt[0, 0]])
@@ -581,16 +581,25 @@ if __name__ == "__main__":
         plt.plot(k_plot, model_percentiles[2], ls=':', color=line_colours[i], lw=0.5)
         plt.plot(k_plot, model_percentiles[0], ls='-.', color=line_colours[i], lw=0.5)
 
+        #plt.plot(k_plot, forest_HCD_linear_bias_and_sinc_model((k_plot, mu_plot), b_HCD[0], beta_HCD[0], b_F[0], beta_F[0], 24.341), ls='-', color=line_colours[i], lw=1.)
+
     plt.scatter(k_large_scales, power_difference, c=mu_large_scales, cmap=cmap, norm=norm, s=100.)
     plt.errorbar(k_large_scales, power_difference, yerr=power_ratio_errors * power_difference * mh.sqrt(2.), ecolor='gray', ls='')
     plt.colorbar()
 
     plt.xscale('log')
     plt.xlim([8.e-2, 1.])
+    #plt.ylim([-0.0001, 0.0006])  #LLS
     #plt.ylim([-0.0005, 0.0025]) #Sub-DLAs
     #plt.ylim([-0.002, 0.005]) #Small DLAs
-    plt.ylim([-0.003, 0.005])  # Large DLAs
+    #plt.ylim([-0.003, 0.005])  # Large DLAs
+    #plt.ylim([-0.001, 0.006]) #Residual contamination
+    #plt.ylim([-0.005, 0.011])  # Total contamination
+
+    #z = 3.49
+    plt.ylim([-0.003, 0.009]) #Sub-DLAs
+
     plt.axhline(y = 0., color = 'black', lw = 0.5, ls = ':')
-    plt.axvline(x = 0.25, color = 'black', lw = 0.5, ls = ':')
+    #plt.axvline(x = 0.25, color = 'black', lw = 0.5, ls = ':')
 
     plt.show()

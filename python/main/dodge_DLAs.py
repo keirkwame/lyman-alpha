@@ -22,8 +22,8 @@ if __name__ == "__main__":
     '''species_col_dens_lower_limit = 1.6e+17 / (u.cm * u.cm)
     species_col_dens_upper_limit = 1.e+19 / (u.cm * u.cm)'''
 
-    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra')
-    #partially_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_DLAs_LLS_dodged')
+    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra') #_smallDLAs_forest')
+    partially_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_DLAs_LLS_dodged')
 
     '''max_col_densities = undodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
     species_bool_arr = (max_col_densities <= species_col_dens_upper_limit) * (max_col_densities > species_col_dens_lower_limit)
@@ -39,10 +39,10 @@ if __name__ == "__main__":
     partially_dodged_spectra_ins.spectra_instance.savefile = '%s/gridded_spectra_LLS_forest_%i_%i.hdf5' %(spectra_full_dir_path,grid_width,int(spectral_res.value))
     partially_dodged_spectra_ins.spectra_instance.save_file()'''
 
-    '''new_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_largeDLAs_LLS_forest')
-    new_max_col_densities = new_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
-    dodged_max_col_densities = partially_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
-    new_optical_depth = new_dodged_spectra_ins.get_optical_depth()'''
+    #new_dodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_smallDLAs_forest')
+    #new_max_col_densities = new_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
+    #dodged_max_col_densities = partially_dodged_spectra_ins.max_local_sum_of_column_density_in_each_skewer().flatten()
+    #new_optical_depth = new_dodged_spectra_ins.get_optical_depth()
 
     #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
 
@@ -69,9 +69,9 @@ if __name__ == "__main__":
 
     #np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/power.npz',power_binned,k_binned,bin_counts) #,model_power_binned)
 
-    print("Finished")
+    '''print("Finished")
     column_density = undodged_spectra_ins.get_column_density()
-    print("Finished calculating column densities")
+    print("Finished calculating column densities")'''
     '''optical_depth = undodged_spectra_ins.get_optical_depth()
     print("Finished calculating optical depths")'''
 
@@ -81,6 +81,6 @@ if __name__ == "__main__":
 
     undodged_spectra_ins.form_skewers_realisation_dodging_DLAs(col_dens_threshold=col_den_thresh, dodge_dist=dodge_dist, savefile_root=dodged_spectra_savefile_root)'''
 
-    cddf, col_den_bin_edges = np.histogram(column_density.value,bins=10. ** np.linspace(np.log10(1.6e+17), np.log10(np.max(column_density.value)), 1000),range=(1.6e+17, np.max(column_density.value)))
+    '''cddf, col_den_bin_edges = np.histogram(column_density.value,bins=10. ** np.linspace(np.log10(1.6e+17), np.log10(np.max(column_density.value)), 1000),range=(1.6e+17, np.max(column_density.value)))
     np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/CDDF.npy',cddf)
-    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/CDDF_bin_edges.npy',col_den_bin_edges)
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/CDDF_bin_edges.npy',col_den_bin_edges)'''

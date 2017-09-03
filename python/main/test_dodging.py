@@ -14,10 +14,10 @@ if __name__ == "__main__":
 
     #Input parameters
     box_size = {'x': 106.5 * u.Mpc, 'y': 106.5 * u.Mpc, 'z': 10.65 * u.Mpc} # = 75 Mpc / h
-    n_samp = {'x': 7501, 'y': 751, 'z': 76}
-    n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 76}
+    n_samp = {'x': 7501, 'y': 751, 'z': 751}
+    n_samp_sub_sampled = {'x': 751, 'y': 751, 'z': 751}
     sub_sampling_rate = 10
-    redshift = 2.44
+    redshift = 3.49 #2.44
     H0 = (70.4 * u.km) / (u.s * u.Mpc)
     omega_m = 0.2726
     n_mu_bins = 4
@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     #Gaussian boxes
     '''test_gaussian_box = test_gaussian_ins.anisotropic_pre_computed_gauss_realisation(model_cosmology_filename, mu_coefficients)
-    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy',test_gaussian_box)'''
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_057/test_gaussian_box_isotropic_7501_751_76_z_3_49.npy',test_gaussian_box)'''
     #test_gaussian_box = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy') #* 1.e+8
     test_gaussian_box = np.load('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/test_gaussian_box_isotropic_7501_751_76.npy')
 

@@ -10,8 +10,8 @@ from parametric_fit import *
 import utils as uti
 
 def make_plot_voigt_power_spectrum(f_name):
-    col_den_min = 1.e+21
-    col_den_max = 1.e+30
+    col_den_min = 1.e+19
+    col_den_max = 2.e+20
 
     cddf = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/CDDF.npy')
     col_den_bin_edges = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/CDDF_bin_edges.npy')
@@ -34,7 +34,7 @@ def make_plot_voigt_power_spectrum(f_name):
     col_den_max = 1.e+21 / (u.cm ** 2)
     col_den_max_2 = 1.e+22 / (u.cm ** 2)'''
 
-    k_d = -23.09
+    '''k_d = -23.09
     #k_d = -22.41 #Sub-DLAs
     N_d = 21.27
     #N_d = 20.90 #Sub-DLAs
@@ -42,7 +42,7 @@ def make_plot_voigt_power_spectrum(f_name):
     #alpha_d_low_col_den = -1.13 #Sub-DLAs
     alpha_d_high_col_den = -3.48 #N >= 21.27
     weights = 10. ** (k_d + (alpha_d_low_col_den * (np.log10(col_den.value) - N_d)))
-    weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))
+    weights[np.log10(col_den.value) >= N_d] = 10. ** (k_d + (alpha_d_high_col_den * (np.log10(col_den.value)[np.log10(col_den.value) >= N_d] - N_d)))'''
 
     '''colden_numer =((col_den_max**(alpha_d_low_col_den+2))-(col_den_min**(alpha_d_low_col_den+2)))*(alpha_d_low_col_den+1)
     colden_denom =((col_den_max**(alpha_d_low_col_den+1))-(col_den_min**(alpha_d_low_col_den+1)))*(alpha_d_low_col_den+2)
