@@ -34,6 +34,26 @@ class Box(object):
         else:
             return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi
 
+    def r_i(self,i):
+        if self.convert_fourier_units_to_distance == False:
+            box_units = self.voxel_velocities[i]
+        else:
+            box_units = self.voxel_lens[i]
+
+        return np.arange(self._n_samp[i]) * box_units
+
+    def r_box(self):
+        x = self.r_i('x')[:,np.newaxis,np.newaxis]
+        y = self.r_i('y')[np.newaxis,:,np.newaxis]
+        z = self.r_i('z')[np.newaxis,np.newaxis,:]
+        return np.sqrt(x**2 + y**2 + z**2)
+
+    def mu_r_box(self):
+        x = self.r_i('x')[:, np.newaxis, np.newaxis]
+        y = self.r_i('y')[np.newaxis, :, np.newaxis]
+        z = self.r_i('z')[np.newaxis, np.newaxis, :]
+        return z / np.sqrt(x**2 + y**2 + z**2)
+
     def k_z_mod(self):
         if self.convert_fourier_units_to_distance == False:
             box_units = self.voxel_velocities['z']
