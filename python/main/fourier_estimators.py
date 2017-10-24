@@ -93,6 +93,9 @@ class FourierEstimator3D(FourierEstimator):
             flux_power = (df_hat.real * df_hat_2.real) + (df_hat.imag * df_hat_2.imag)
         return flux_power, df_hat
 
+    def get_correlation_function_3D(self, norm = True):
+        return np.fft.ifftn(self.get_flux_power_3D(norm = norm)[0])
+
     def get_flux_power_3D_cylindrical_coords(self,k_z_mod_box,k_perp_box,n_bins_z,n_bins_perp,norm=True):
         #Need to generalise sorting of power by two coordinates!!!
         power_sorted,k_z_sorted,k_perp_sorted = self.get_flux_power_legendre_integrand(k_z_mod_box,k_perp_box,n_bins_z,norm)
@@ -120,11 +123,10 @@ class FourierEstimator3D(FourierEstimator):
         return bin_1D_data(power_sorted, n_bins), bin_1D_data(k_sorted, n_bins)
 
     def _form_return_list(self,x,y,n_bins_x,n_bins_y,norm,bin_coord_x,bin_coord_y,count,std_err,correlation_function=False):
-        flux_power_box = self.get_flux_power_3D(norm)[0]
         if correlation_function == False:
-            ensemble_statistic = flux_power_box.flatten()[1:]
+            ensemble_statistic = self.get_flux_power_3D(norm)[0].flatten()[1:]
         elif correlation_function == True:
-            ensemble_statistic = np.fft.ifftn(flux_power_box).flatten()[1:]
+            ensemble_statistic = self.get_correlation_function_3D(norm = norm).flatten()[1:]
 
         return_list = [None]*(1+bin_coord_x+bin_coord_y+count+std_err) #Number of calculations
         return_list[0] = bin_f_x_y_histogram(x,y,ensemble_statistic,n_bins_x,n_bins_y) #Always bin power
