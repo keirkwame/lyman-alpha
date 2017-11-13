@@ -248,11 +248,11 @@ def make_plot_contaminant_power_ratios_1D_with_templates(f_name_list, contaminan
     plot_contaminant_power_ratios_1D_with_templates(k_z_mod, contaminant_power_ratios_1D, f_name_list)
 
 def make_plot_linear_flux_power_3D():
-    f_name = '/Users/keir/Documents/dla_papers/paper_3D/linear_flux_power_3D_high_res.png'
+    f_name = '/Users/kwame/Documents/dla_papers/paper_3D/figures/linear_flux_power_3D_bw.pdf'
 
-    k_pk_linear = np.loadtxt('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_4_snap64.dat')
-    k_pk_dark_matter = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/PK-DM-snap_064') #,usecols=[0,1])
-    k_pk_flux = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power.npz')
+    k_pk_linear = np.loadtxt('/Users/kwame/Software/lyman-alpha/python/test/P_k_z_2_4_snap64.dat')
+    k_pk_dark_matter = np.loadtxt('/Users/kwame/Simulations/Illustris/snapdir_064/PK-DM-snap_064') #,usecols=[0,1])
+    k_pk_flux = np.load('/Users/kwame/Simulations/Illustris/snapdir_064/power.npz')
     box_size = 75.
     hubble = 0.70399999999999996
 
@@ -1024,16 +1024,20 @@ def plot_anisotropic_linear_flux_power_3D(k_mod,power,errorbars,f_name):
 def plot_linear_flux_power_3D(k_mod,power,f_name):
     line_labels = ['Linear theory', 'Dark matter', 'Lyman-alpha forest flux']
     dis_cols = dc.get_distinct(2)
-    line_colours = ['black',dis_cols[0],dis_cols[1]]
+    line_colours = ['black']*3 #,dis_cols[0],dis_cols[1]]
+    line_styles = [':', '--', '-']
     x_label = r'$|\mathbf{k}|$ [$h\,\mathrm{Mpc}^{-1}$]'
     y_label = r'$P^\mathrm{3D}(|\mathbf{k}|)$ [$\mathrm{Mpc}^3\,h^{-3}$]'
     x_log_scale = True
     y_log_scale = True
 
-    plot_instance = Plot()
-    fig, ax = plot_instance.plot_lines(k_mod, power, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale)
-    ax.set_xlim([5.e-2,50.])
-    ax.set_ylim([8.e-6,1.e+4])
+    figure, axis = plt.subplots(1)
+    plot_instance = Plot(font_size = 18.0)
+    figure, axis = plot_instance.plot_lines(k_mod, power, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles, fig=figure, ax=axis)
+    axis.set_xlim([5.e-2,50.])
+    axis.set_ylim([8.e-6,1.e+4])
+    axis.legend(frameon=False, fontsize=18.0)
+    figure.subplots_adjust(right=0.99, left=0.11, bottom=0.11)
     plt.savefig(f_name)
 
 class Plot():
@@ -1132,4 +1136,4 @@ if __name__ == "__main__":
 
 
     #3D paper
-    make_plot_residual_contamination()
+    make_plot_linear_flux_power_3D()

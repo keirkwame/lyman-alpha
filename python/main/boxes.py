@@ -20,26 +20,60 @@ class Box(object):
         self._redshift = redshift
         self._H0 = H0
         self._omega_m = omega_m
+
         self.nskewers = nskewers
         self.scale_factor = 1. / (1. + self._redshift)
         self.convert_fourier_units_to_distance = False
 
-    def k_i(self,i):
+    def _set_box_units(self,i):
         if self.convert_fourier_units_to_distance == False:
-            box_units = self.voxel_velocities[i]
+            return self.voxel_velocities[i]
         else:
-            box_units = self.voxel_lens[i]
+            return self.voxel_lens[i]
+
+    #1D coordinate arrays
+    def k_i(self,i):
+        box_units = self._set_box_units(i)
         if i == 'z':
             return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi #2 * pi for "cosmologist's k"
         else:
             return np.fft.fftfreq(self._n_samp[i], d=box_units) * 2. * mh.pi
 
-    def r_i(self,i):
-        if self.convert_fourier_units_to_distance == False:
-            box_units = self.voxel_velocities[i]
-        else:
-            box_units = self.voxel_lens[i]
+    def k_z_mod(self):
+        box_units = self._set_box_units('z')
+        return np.fft.rfftfreq(self._n_samp['z'], d=box_units) * 2. * mh.pi
 
+    #Cylindrical coordinate system
+    def k_z_mod_box(self):
+        x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]
+        y = np.zeros_like(self.k_i('y'))[np.newaxis, :, np.newaxis]
+        z = self.k_i('z')[np.newaxis, np.newaxis, :]
+        return x + y + np.absolute(z)
+
+    def k_perp_box(self):
+        x = self.k_i('x')[:, np.newaxis, np.newaxis]
+        y = self.k_i('y')[np.newaxis, :, np.newaxis]
+        z = np.zeros_like(self.k_i('z'))[np.newaxis, np.newaxis, :]
+        return np.sqrt(x**2 + y**2) + z
+
+    #Spherical coordinate system
+    def k_box(self):
+        x = self.k_i('x')[:,np.newaxis,np.newaxis]
+        y = self.k_i('y')[np.newaxis,:,np.newaxis]
+        z = self.k_i('z')[np.newaxis,np.newaxis,:]
+        return np.sqrt(x**2 + y**2 + z**2)
+
+    def mu_box(self):
+        x = self.k_i('x')[:, np.newaxis, np.newaxis]
+        y = self.k_i('y')[np.newaxis, :, np.newaxis]
+        z = self.k_i('z')[np.newaxis, np.newaxis, :]
+        k = np.sqrt(x**2 + y**2 + z**2)
+        k[k == 0.] = np.nan
+        return z / k
+
+    #Configuration space coordinates
+    def r_i(self,i):
+        box_units = self._set_box_units(i)
         return np.arange(self._n_samp[i]) * box_units
 
     def r_box(self):
@@ -52,38 +86,9 @@ class Box(object):
         x = self.r_i('x')[:, np.newaxis, np.newaxis]
         y = self.r_i('y')[np.newaxis, :, np.newaxis]
         z = self.r_i('z')[np.newaxis, np.newaxis, :]
-        return z / np.sqrt(x**2 + y**2 + z**2)
-
-    def k_z_mod(self):
-        if self.convert_fourier_units_to_distance == False:
-            box_units = self.voxel_velocities['z']
-        else:
-            box_units = self.voxel_lens['z']
-        return np.fft.rfftfreq(self._n_samp['z'], d=box_units) * 2. * mh.pi
-
-    def k_z_mod_box(self): #Generalise to any k_i
-        x = np.zeros_like(self.k_i('x'))[:, np.newaxis, np.newaxis]
-        y = np.zeros_like(self.k_i('y'))[np.newaxis, :, np.newaxis]
-        z = self.k_i('z')[np.newaxis, np.newaxis, :]
-        return x + y + np.absolute(z)
-
-    def k_perp_box(self): #Generalise to any pair of k_i
-        x = self.k_i('x')[:, np.newaxis, np.newaxis]
-        y = self.k_i('y')[np.newaxis, :, np.newaxis]
-        z = np.zeros_like(self.k_i('z'))[np.newaxis, np.newaxis, :]
-        return np.sqrt(x**2 + y**2) + z
-
-    def k_box(self):
-        x = self.k_i('x')[:,np.newaxis,np.newaxis]
-        y = self.k_i('y')[np.newaxis,:,np.newaxis]
-        z = self.k_i('z')[np.newaxis,np.newaxis,:]
-        return np.sqrt(x**2 + y**2 + z**2)
-
-    def mu_box(self):
-        x = self.k_i('x')[:, np.newaxis, np.newaxis]
-        y = self.k_i('y')[np.newaxis, :, np.newaxis]
-        z = self.k_i('z')[np.newaxis, np.newaxis, :]
-        return z / np.sqrt(x**2 + y**2 + z**2)
+        r = np.sqrt(x**2 + y**2 + z**2)
+        r[r == 0.] = np.nan
+        return z / r
 
     def hubble_z(self):
         return self._H0 * np.sqrt(self._omega_m * (1 + self._redshift) ** 3 + 1. - self._omega_m)
@@ -106,10 +111,9 @@ class GaussianBox(Box):
         self._num_voigt = 0
         self.num_clean_skewers = self.nskewers
         self._voigt_profile_skewers_index_arr = np.zeros(self.nskewers)
-        self._voigt_profile_skewers_bool_arr = np.zeros(self.nskewers, dtype=bool)  # Array of Falses
+        self._voigt_profile_skewers_bool_arr = np.zeros(self.nskewers, dtype=bool)
 
     def _gauss_realisation(self, power_evaluated, k_box):
-        print(power_evaluated)
         gauss_k=np.sqrt(0.5*power_evaluated)*(npr.standard_normal(size=power_evaluated.shape)+npr.standard_normal(size=power_evaluated.shape)*1.j)
         gauss_k[k_box == 0.] = 0. #Zeroing the mean
         gauss_k_hermitian = make_box_hermitian(gauss_k)
@@ -126,15 +130,21 @@ class GaussianBox(Box):
         power_evaluated = box_spectra.evaluate3d_anisotropic(self.k_box(),self.mu_box())
         return self._gauss_realisation(power_evaluated,self.k_box())
 
-    def isotropic_pre_computed_gauss_realisation(self,fname):
-        box_spectra = PreComputedPowerSpectrum(fname)
+    def isotropic_pre_computed_gauss_realisation(self,fname,n_interpolation_samples='default'):
+        box_spectra = PreComputedPowerSpectrum(fname,n_interpolation_samples=n_interpolation_samples)
+        orig_fourier_units_bool = self.convert_fourier_units_to_distance
+        self.convert_fourier_units_to_distance = True
         power_evaluated = box_spectra.evaluate3d_isotropic(self.k_box())
+        self.convert_fourier_units_to_distance = orig_fourier_units_bool
         return self._gauss_realisation(power_evaluated,self.k_box())
 
-    def anisotropic_pre_computed_gauss_realisation(self, fname, mu_coefficients):
-        box_spectra = PreComputedPowerSpectrum(fname)
+    def anisotropic_pre_computed_gauss_realisation(self, fname, mu_coefficients, n_interpolation_samples='default'):
+        box_spectra = PreComputedPowerSpectrum(fname,n_interpolation_samples=n_interpolation_samples)
         box_spectra.set_anisotropic_functional_form(mu_coefficients)
+        orig_fourier_units_bool = self.convert_fourier_units_to_distance
+        self.convert_fourier_units_to_distance = True
         power_evaluated = box_spectra.evaluate3d_anisotropic(self.k_box(),self.mu_box())
+        self.convert_fourier_units_to_distance = orig_fourier_units_bool
         return self._gauss_realisation(power_evaluated,self.k_box())
 
     def isotropic_CAMB_gauss_realisation(self):

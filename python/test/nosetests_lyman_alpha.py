@@ -11,22 +11,31 @@ from boxes import *
 from fourier_estimators import *
 from utils import *
 
-#This is just the very start of the test suite!
+def test_gauss_realisation():
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_n_samples = {'x': 250, 'y': 250, 'z': 117}
+    test_gaussian_box = GaussianBox(test_box_size, test_n_samples, 3.993, (70.4 * u.km) / (u.s * u.Mpc), 0.2726)
+    k_samples = test_gaussian_box.k_box()
+    test_gaussian_realisation = test_gaussian_box._gauss_realisation(np.zeros_like(k_samples.value),k_samples)
+    npt.assert_array_equal(test_gaussian_realisation,np.zeros((test_n_samples['x'],test_n_samples['y'],test_n_samples['z'])))
 
-#Null tests
+def test_isotropic_pre_computed_gauss_realisation():
+    fname = os.path.dirname(os.path.abspath(__file__)) + '/P_k_z_4_default_CLASS.dat'
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_n_samples = {'x': 250, 'y': 250, 'z': 117}
+    test_gaussian_box = GaussianBox(test_box_size, test_n_samples, 4., (67.11 * u.km) / (u.s * u.Mpc), 0.3161)
+    test_gaussian_realisation = test_gaussian_box.isotropic_pre_computed_gauss_realisation(fname,n_interpolation_samples=250)
+    assert test_gaussian_realisation.shape == (test_n_samples['x'],test_n_samples['y'],test_n_samples['z'])
 
-def test_pre_computed_power_spectra_no_interpolation_limit():
-    fname = os.path.dirname(os.path.abspath(__file__)) + '/P_k_z_4_default_CLASS.dat' #Make auto locate path to datafile
-    pre_computed_power_instance = PreComputedPowerSpectrum(fname,n_interpolation_samples = 2500)
-    power_interpolated = pre_computed_power_instance.evaluate3d_isotropic(pre_computed_power_instance.k_raw)
-    return npt.assert_allclose(power_interpolated,pre_computed_power_instance.power_raw)
+def test_anisotropic_pre_computed_gauss_realisation_mean():
+    fname = os.path.dirname(os.path.abspath(__file__)) + '/P_k_z_4_default_CLASS.dat'
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_n_samples = {'x': 250, 'y': 250, 'z': 117}
+    anisotropic_function = lambda a, b:np.array([1., 1., 1., 1., 1.])
+    test_gaussian_box = GaussianBox(test_box_size, test_n_samples, 4., (67.11 * u.km) / (u.s * u.Mpc), 0.3161)
+    test_anisotropic_gaussian_realisation = test_gaussian_box.anisotropic_pre_computed_gauss_realisation(fname,anisotropic_function,n_interpolation_samples=250)
+    assert np.absolute(np.mean(test_anisotropic_gaussian_realisation)) < 1.e-16
 
-def test_anisotropic_power_law_power_spectra_isotropic_limit():
-    test_k = np.arange(1.e-3,1.e+2,1.e-3) / u.Mpc
-    isotropic_power_instance = PowerLawPowerSpectrum(-1., 1. / u.Mpc, 1.)
-    anisotropic_power_instance = PowerLawPowerSpectrum(-1., 1. / u.Mpc, 1.)
-    anisotropic_power_instance.set_anisotropic_functional_form(lambda a, b:np.array([0., 0., 0., 0., 1.]))
-    npt.assert_allclose(anisotropic_power_instance.evaluate_multipole(0,test_k),isotropic_power_instance.evaluate3d_isotropic(test_k))
 
 def test_choose_location_voigt_profiles_in_sky():
     test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
