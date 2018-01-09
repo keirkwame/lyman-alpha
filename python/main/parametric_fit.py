@@ -291,7 +291,7 @@ def forest_HCD_linear_bias_and_parametric_wings_model(k_mu_tuple, b_F_weighted, 
 
     (k, mu) = k_mu_tuple
 
-    if F_Voigt == None:
+    '''if F_Voigt == None:
         if plot == False:
             F_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/k_h_Mpc_F_HCD_Voigt_large_DLAs_interpolated_data_CDDF_z_3_49_bin_4_6_evenMu.txt')[:,1]
             #F_Voigt = F_Voigt[np.array([True, False, False, True, False, False, False, True, False, False, False, True, False, False, False, True, False, False, False])]
@@ -303,7 +303,7 @@ def forest_HCD_linear_bias_and_parametric_wings_model(k_mu_tuple, b_F_weighted, 
             Voigt_interpolating_function = spp.interp1d(k_F_HCD_Voigt[:8000:50,0],k_F_HCD_Voigt[:8000:50,1],kind='cubic')
             F_Voigt = np.ones_like(k)
             F_Voigt[(k * mu) > k_F_HCD_Voigt[0,0]] = Voigt_interpolating_function((k * mu)[k * mu > k_F_HCD_Voigt[0,0]])
-            #F_Voigt[(k * mu) < 1.e-2] = 1.
+            #F_Voigt[(k * mu) < 1.e-2] = 1.'''
 
     F_HCD = F_Voigt #[slice_array] #* np.exp(k * mu / a) - (b * k * mu)
     forest_linear_bias = b_F * (1. + (beta_F * (mu ** 2)))
