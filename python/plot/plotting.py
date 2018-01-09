@@ -7,7 +7,7 @@ import astropy.units as u
 import distinct_colours_py3 as dc
 
 from parametric_fit import *
-import utils as uti
+#import utils as uti
 
 def make_plot_voigt_power_spectrum(f_name):
     col_den_min = 1.e+21
@@ -703,60 +703,60 @@ def plot_residual_contamination(k_mod,power,errorbars, k_mod_plot, power_max_pos
     plt.savefig(f_name)
 
 def make_plot_categories():
-    f_name = '/Users/keir/Documents/dla_papers/paper_3D/figures/categories_posteriors_no_limits_dotted2.pdf'
+    f_name = '/Users/kwame/Papers/dla_papers/paper_3D/categories_posteriors_no_limits_dotted6.pdf'
 
     low_z_files = [None]*6
-    low_z_files[0] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_LLS_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
-    low_z_files[1] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_subDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
-    low_z_files[2] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_smallDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
-    low_z_files[3] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_largeDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
-    low_z_files[4] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_files[0] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/power_LLS_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_files[1] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/power_subDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_files[2] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/power_smallDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_files[3] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/power_largeDLAs_forest_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_files[4] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/power_DLAs_LLS_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz')
 
     high_z_files = [None] * 6
-    high_z_files[0] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_LLS_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
-    high_z_files[1] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_subDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
-    high_z_files[2] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_smallDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
-    high_z_files[3] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_largeDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
-    high_z_files[4] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/power_DLAs_LLS_dodged_57_750_10_4_6_evenMu_kMax_1.00.npz')
+    high_z_files[0] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/power_LLS_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
+    high_z_files[1] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/power_subDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00_2.npz')
+    high_z_files[2] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/power_smallDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
+    high_z_files[3] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/power_largeDLAs_forest_57_750_10_4_6_evenMu_kMax_1.00.npz')
+    high_z_files[4] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/power_DLAs_LLS_dodged_57_750_10_4_6_evenMu_kMax_1.00.npz')
 
-    low_z_files[5] = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_evenMu_k_raw_max_1_pow_k_not_binned.npz')
-    high_z_files[5] = np.load('/Users/keir/Software/lyman-alpha/python/test/P_k_z_3_49_snap57_750_10_4_6_evenMu_k_raw_max_1_pow_k_mu_binned.npz')
+    low_z_files[5] = np.load('/Users/kwame/Software/lyman-alpha/python/test/P_k_z_2_44_snap64_750_10_4_6_evenMu_k_raw_max_1_pow_k_not_binned.npz')
+    high_z_files[5] = np.load('/Users/kwame/Software/lyman-alpha/python/test/P_k_z_3_49_snap57_750_10_4_6_evenMu_k_raw_max_1_pow_k_mu_binned.npz')
 
     low_z_samples = [None]*4
-    low_z_samples[0] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/samples_LLS_z_2_44.npy')
-    low_z_samples[1] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/samples_sub_DLAs_z_2_44.npy')
-    low_z_samples[2] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/samples_small_DLAs_z_2_44.npy')
-    low_z_samples[3] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/samples_large_DLAs_z_2_44.npy')
+    low_z_samples[0] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/samples_LLS_z_2_44.npy')
+    low_z_samples[1] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/samples_sub_DLAs_z_2_44.npy')
+    low_z_samples[2] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/samples_small_DLAs_z_2_44.npy')
+    low_z_samples[3] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_064/samples_large_DLAs_z_2_44.npy')
 
     high_z_samples = [None]*4
-    high_z_samples[0] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/samples_LLS_z_3_49.npy')
-    high_z_samples[1] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/samples_sub_DLAs_z_3_49.npy')
-    high_z_samples[2] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/samples_small_DLAs_z_3_49.npy')
-    high_z_samples[3] = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/samples_large_DLAs_z_3_49.npy')
+    high_z_samples[0] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/samples_LLS_z_3_49.npy')
+    high_z_samples[1] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/samples_sub_DLAs_z_3_49.npy')
+    high_z_samples[2] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/samples_small_DLAs_z_3_49.npy')
+    high_z_samples[3] = np.load('/Users/kwame/Simulations/Illustris_1/snapdir_057/samples_large_DLAs_z_3_49.npy')
 
     low_z_F_Voigt = [None]*4
-    low_z_F_Voigt[0] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/F_Voigt_LLS_z_2_44_plot.dat')
-    low_z_F_Voigt[1] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/F_Voigt_sub_DLAs_z_2_44_plot.dat')
-    low_z_F_Voigt[2] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/F_Voigt_small_DLAs_z_2_44_plot.dat')
-    low_z_F_Voigt[3] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/F_Voigt_large_DLAs_z_2_44_plot.dat')
+    low_z_F_Voigt[0] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_064/F_Voigt_LLS_z_2_44_plot.dat')
+    low_z_F_Voigt[1] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_064/F_Voigt_sub_DLAs_z_2_44_plot.dat')
+    low_z_F_Voigt[2] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_064/F_Voigt_small_DLAs_z_2_44_plot.dat')
+    low_z_F_Voigt[3] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_064/F_Voigt_large_DLAs_z_2_44_plot.dat')
 
     high_z_F_Voigt = [None]*4
-    high_z_F_Voigt[0] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/F_Voigt_LLS_z_3_49_plot.dat')
-    high_z_F_Voigt[1] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/F_Voigt_sub_DLAs_z_3_49_plot.dat')
-    high_z_F_Voigt[2] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/F_Voigt_small_DLAs_z_3_49_plot.dat')
-    high_z_F_Voigt[3] = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/F_Voigt_large_DLAs_z_3_49_plot.dat')
+    high_z_F_Voigt[0] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_057/F_Voigt_LLS_z_3_49_plot.dat')
+    high_z_F_Voigt[1] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_057/F_Voigt_sub_DLAs_z_3_49_plot.dat')
+    high_z_F_Voigt[2] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_057/F_Voigt_small_DLAs_z_3_49_plot.dat')
+    high_z_F_Voigt[3] = np.loadtxt('/Users/kwame/Simulations/Illustris_1/snapdir_057/F_Voigt_large_DLAs_z_3_49_plot.dat')
 
     model_percentiles_fname_root_low_z = [None]*4
-    model_percentiles_fname_root_low_z[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/model_percentiles_LLS_z_2_44_'
-    model_percentiles_fname_root_low_z[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/model_percentiles_sub_DLAs_z_2_44_'
-    model_percentiles_fname_root_low_z[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/model_percentiles_small_DLAs_z_2_44_'
-    model_percentiles_fname_root_low_z[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/model_percentiles_large_DLAs_z_2_44_'
+    model_percentiles_fname_root_low_z[0] = '/Users/kwame/Simulations/Illustris_1/snapdir_064/model_percentiles_LLS_z_2_44_'
+    model_percentiles_fname_root_low_z[1] = '/Users/kwame/Simulations/Illustris_1/snapdir_064/model_percentiles_sub_DLAs_z_2_44_'
+    model_percentiles_fname_root_low_z[2] = '/Users/kwame/Simulations/Illustris_1/snapdir_064/model_percentiles_small_DLAs_z_2_44_'
+    model_percentiles_fname_root_low_z[3] = '/Users/kwame/Simulations/Illustris_1/snapdir_064/model_percentiles_large_DLAs_z_2_44_'
 
     model_percentiles_fname_root_high_z = [None] * 4
-    model_percentiles_fname_root_high_z[0] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/model_percentiles_LLS_z_3_49_'
-    model_percentiles_fname_root_high_z[1] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/model_percentiles_sub_DLAs_z_3_49_'
-    model_percentiles_fname_root_high_z[2] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/model_percentiles_small_DLAs_z_3_49_'
-    model_percentiles_fname_root_high_z[3] = '/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_057/model_percentiles_large_DLAs_z_3_49_'
+    model_percentiles_fname_root_high_z[0] = '/Users/kwame/Simulations/Illustris_1/snapdir_057/model_percentiles_LLS_z_3_49_'
+    model_percentiles_fname_root_high_z[1] = '/Users/kwame/Simulations/Illustris_1/snapdir_057/model_percentiles_sub_DLAs_z_3_49_'
+    model_percentiles_fname_root_high_z[2] = '/Users/kwame/Simulations/Illustris_1/snapdir_057/model_percentiles_small_DLAs_z_3_49_'
+    model_percentiles_fname_root_high_z[3] = '/Users/kwame/Simulations/Illustris_1/snapdir_057/model_percentiles_large_DLAs_z_3_49_'
 
     n_modes = low_z_files[0]['arr_2']
 
@@ -838,6 +838,12 @@ def plot_categories(k_mod,power,errorbars, k_mod_plot, power_max_posterior, powe
             figure, axes[i, j] = plot_instance.plot_lines([k_plot,]*4, power_max_posterior_plot, line_labels[idx0:idx1], line_colours[idx0:idx1], x_label[int(idx0 / 4)], y_label[int(idx0 / 4)], x_log_scale, y_log_scale, line_weights=[line_weight_thick,]*4, fig=figure, ax=axes[i, j])
             #figure, axes[i, j] = plot_instance.plot_lines([k_mod_plot, ] * 4, np.array(power_percentiles[idx0:idx1])[:,0,:], [None]*4, line_colours[idx0:idx1], x_label[int(idx0 / 4)], y_label[int(idx0 / 4)], x_log_scale, y_log_scale, line_styles=[':']*4, line_weights=[line_weight_thin,]*4, fig=figure, ax=axes[i, j])
             #figure, axes[i, j] = plot_instance.plot_lines([k_mod_plot, ] * 4, np.array(power_percentiles[idx0:idx1])[:,1,:], [None]*4, line_colours[idx0:idx1], x_label[int(idx0 / 4)], y_label[int(idx0 / 4)], x_log_scale, y_log_scale, line_styles=[':']*4, line_weights=[line_weight_thin,]*4, fig=figure, ax=axes[i, j])
+
+            #Use posterior errorbars
+            slice_array = np.argmin(np.fabs(k_mod_plot[:,np.newaxis,np.newaxis] - np.array(k_mod[idx0:idx1])[np.newaxis,:,:]), axis=0)
+            errorbars_raw = np.array(power_percentiles[idx0:idx1])[:,0,:] - power_max_posterior[idx0:idx1]
+            errorbars[idx0:idx1] = [errorbars_raw[0,slice_array[0]],errorbars_raw[1,slice_array[1]],errorbars_raw[2,slice_array[2]],errorbars_raw[3,slice_array[3]]]
+
             figure, axes[i, j] = plot_instance.plot_lines(k_mod[idx0:idx1], power[idx0:idx1], [None]*4, line_colours[idx0:idx1], x_label[int(idx0 / 4)], y_label[int(idx0 / 4)], x_log_scale, y_log_scale, line_styles=line_styles[idx0:idx1], marker_styles=marker_styles[idx0:idx1], fig=figure, ax=axes[i, j], errorbars=errorbars[idx0:idx1])
 
             axes[i,j].axhline(y=0., color='black', ls=':')
@@ -1136,4 +1142,4 @@ if __name__ == "__main__":
 
 
     #3D paper
-    make_plot_linear_flux_power_3D()
+    make_plot_categories()
