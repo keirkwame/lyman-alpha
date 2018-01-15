@@ -19,27 +19,30 @@ if __name__ == "__main__":
     spectra_full_dir_path = sys.argv[5]
     model_cosmology_filename = sys.argv[6]
 
-    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra') #_LLS_forest')
+    undodged_spectra_ins = box.SimulationBox(snapshot_num, snapshot_dir, grid_width, spectral_res, reload_snapshot=False, spectra_savedir=spectra_full_dir_path, spectra_savefile_root='gridded_spectra_DLAs_LLS_dodged') #_LLS_forest')
     #print(np.mean(np.exp(-1. * undodged_spectra_ins.get_optical_depth())))
 
-    undodged_spectra_ins.convert_fourier_units_to_distance = True
-    spectra_box = undodged_spectra_ins.skewers_realisation(mean_flux_specified=0.675940542622) #0.67573418185771716) #_hydrogen_overdensity(ion = -1)
+    optical_depth = undodged_spectra_ins.get_optical_depth()[0]
+    np.save('/home/keir/Data/Illustris_big_box_spectra/snapdir_057/sample_forest_sightline.npy',optical_depth)
+
+    '''undodged_spectra_ins.convert_fourier_units_to_distance = True
+    spectra_box = undodged_spectra_ins.skewers_realisation(mean_flux_specified=0.675940542622) #0.67573418185771716) #_hydrogen_overdensity(ion = -1)'''
     #spectra_box = undodged_spectra_ins.skewers_realisation(tau_scaling_specified = 1.5)
     '''k_box = undodged_spectra_ins.k_box()
     mu_box = undodged_spectra_ins.mu_box()'''
-    r_box = undodged_spectra_ins.r_box()
+    '''r_box = undodged_spectra_ins.r_box()
     mu_r_box = undodged_spectra_ins.mu_r_box()
 
     for i in [1.]: #np.arange(0.5,0.9,0.1):
         print(i)
         n_mu_bins = 4
-        n_k_bins = 6
-        '''k_min = np.min(k_box[k_box > 0. / u.Mpc])
+        n_k_bins = 6'''
+    '''k_min = np.min(k_box[k_box > 0. / u.Mpc])
         k_max = i * 0.704 / u.Mpc #np.max(k_box)
         k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_k_bins - 1))) / u.Mpc
         k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_k_bins + 1)) / u.Mpc'''
 
-        r_max = np.max(r_box)
+    '''r_max = np.max(r_box)
         r_min = (2. * mh.pi / 0.704) * u.Mpc
         r_bin_edges = np.log(np.linspace(mh.exp(r_min.value), mh.exp(r_max.value), n_k_bins)) * u.Mpc
 
@@ -54,4 +57,4 @@ if __name__ == "__main__":
         correlation = fourier_estimator_instance.get_correlation_function_3D()
 
         #np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/correlation_LLS_forest_64_750_10_4_6_evenMu_kMax_%.2f.npz'%i,correlation_binned,r_binned,bin_counts,mu_binned) #,model_power_binned)'''
-        np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/correlation_total_64_25_25_unbinned.npz',correlation,r_box.value,mu_r_box.value)
+    #np.savez('/home/keir/Data/Illustris_big_box_spectra/snapdir_064/correlation_total_64_25_25_unbinned.npz',correlation,r_box.value,mu_r_box.value)
