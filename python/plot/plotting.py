@@ -261,6 +261,27 @@ def make_plot_linear_flux_power_3D():
 
     plot_linear_flux_power_3D(k_mod, power, f_name)
 
+def make_plot_sample_forest_spectra():
+    f_name = '/Users/kwame/Papers/dla_papers/paper_3D/sample_forest_spectra.pdf'
+
+    f_name_low_z = '/Users/kwame/Simulations/Illustris_1/snapdir_064/sample_forest_sightline.npy'
+    f_name_high_z = '/Users/kwame/Simulations/Illustris_1/snapdir_057/sample_forest_sightline.npy'
+
+    optical_depth_low_z = np.load(f_name_low_z)
+    transmitted_flux_low_z = np.exp(-1. * optical_depth_low_z)
+    optical_depth_high_z = np.load(f_name_high_z)
+    transmitted_flux_high_z = np.exp(-1. * optical_depth_high_z)
+
+    hubble = 0.70399999999999996
+    box_size = 75. / hubble #Mpc
+    position_low_z = np.linspace(0., box_size, num = transmitted_flux_low_z.shape[0], endpoint = False)
+    position_high_z = np.linspace(0., box_size, num = transmitted_flux_high_z.shape[0], endpoint = False)
+
+    transmitted_flux = [transmitted_flux_low_z, transmitted_flux_high_z]
+    position = [position_low_z, position_high_z]
+
+    plot_sample_forest_spectra(position, transmitted_flux, f_name)
+
 def plot_contaminant_power_absolute_1D(k_z_mod,power_absolute,f_name):
     k_z_mod_list = [k_z_mod,] * 6 #) + ([k_z_mod[1],] * 6)
     line_labels = ['Total','Forest','LLS','Sub-DLA','Small DLA','Large DLA'] #+ ([None] * 6)
@@ -995,6 +1016,37 @@ def plot_fractional_hcd_effect(k_mod,power,f_name):
     figure.subplots_adjust(hspace=0., right=0.98, top=0.99, bottom=0.08, left=0.17)
     plt.savefig(f_name)
 
+def plot_sample_forest_spectra(position, transmitted_flux, f_name):
+    line_labels = [''] * 2
+    line_colours = ['black'] * 2
+    x_label = [None, r'Comoving position [Mpc]']
+    y_label = [r'Normalised transmitted flux'] * 2
+    x_log_scale = False
+    y_log_scale = False
+
+    figure, axes = plt.subplots(nrows=2, ncols=1, figsize=(6.4, 7.5))
+    plot_instance = Plot()
+
+    figure, axes[0] = plot_instance.plot_lines([position[0],], [transmitted_flux[0],], [line_labels[0],], [line_colours[0],], x_label[0], y_label[0], x_log_scale, y_log_scale, fig=figure, ax=axes[0])
+    plt.text(0.05, 0.03, r'$z = 2.44$', transform=axes[0].transAxes)
+    #\textbf{(a)}:
+    #axes[0].set_xlim([0., 107.])
+    axes[0].set_ylim([-0.12, 1.05])
+    axes[0].axhline(y=0., color='black', ls=':')
+    axes[0].axhline(y=1., color='black', ls=':')
+    axes[0].set_xticklabels([])
+
+    figure, axes[1] = plot_instance.plot_lines([position[1],], [transmitted_flux[1],], [line_labels[1],], [line_colours[1],], x_label[1], y_label[1], x_log_scale, y_log_scale, fig=figure, ax=axes[1])
+    plt.text(0.05, 0.03, r'$z = 3.49$', transform=axes[1].transAxes)
+    #\textbf{(b)}:
+    #axes[1].set_xlim([0., 107.])
+    axes[1].set_ylim([-0.12, 1.05])
+    axes[1].axhline(y=0., color='black', ls=':')
+    axes[1].axhline(y=1., color='black', ls=':')
+
+    figure.subplots_adjust(hspace=0., right=0.99, top=0.99, bottom=0.08, left=0.1)
+    plt.savefig(f_name)
+
 def plot_anisotropic_linear_flux_power_3D(k_mod,power,errorbars,f_name):
     line_labels = [r'$0 < \mu < 0.25$', r'$0.25 < \mu < 0.5$', r'$0.5 < \mu < 0.75$', r'$0.75 < \mu < 1$'] + ([None]*4) + ['Linear theory'] + ([None]*8)
     dis_cols = dc.get_distinct(4)
@@ -1142,4 +1194,7 @@ if __name__ == "__main__":
 
 
     #3D paper
-    make_plot_categories()
+    #make_plot_categories()
+
+    #Thesis
+    make_plot_sample_forest_spectra()
