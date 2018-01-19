@@ -36,22 +36,29 @@ def test_anisotropic_pre_computed_gauss_realisation_mean():
     test_anisotropic_gaussian_realisation = test_gaussian_box.anisotropic_pre_computed_gauss_realisation(fname,anisotropic_function,n_interpolation_samples=250)
     assert np.absolute(np.mean(test_anisotropic_gaussian_realisation)) < 1.e-16
 
-
 def test_choose_location_voigt_profiles_in_sky():
     test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
-    test_gaussian_box = GaussianBox(test_box_size,{'x': 250, 'y': 250, 'z': 117},3.993,(70.4*u.km)/(u.s*u.Mpc),0.2726)
+    test_gaussian_box = GaussianBox(test_box_size,{'x': 250, 'y': 250, 'z': 117},4.,(67.11*u.km)/(u.s*u.Mpc),0.3161)
     test_gaussian_box._num_voigt = 10000
     test_gaussian_box._choose_location_voigt_profiles_in_sky()
-    assert test_gaussian_box._voigt_profile_skewers_index_arr.shape[0] == 10000 #np.sum(test_gaussian_box._voigt_profile_skewers_bool_arr) == 10000
+    assert test_gaussian_box._voigt_profile_skewers_index_arr.shape[0] == 10000
 
-def test_form_voigt_profile_box(): #SOME REPETITION OF TEST ABOVE!!!
+def test_form_voigt_profile_box():
     test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
-    test_gaussian_box = GaussianBox(test_box_size, {'x': 250, 'y': 250, 'z': 117}, 3.993, (70.4 * u.km) / (u.s * u.Mpc),0.2726)
+    test_gaussian_box = GaussianBox(test_box_size, {'x': 250, 'y': 250, 'z': 117}, 4., (67.11 * u.km) / (u.s * u.Mpc),0.3161)
     test_gaussian_box._num_voigt = 10000
     test_gaussian_box._choose_location_voigt_profiles_in_sky()
     no_voigt_profile_bool_arr = np.logical_not(test_gaussian_box._voigt_profile_skewers_bool_arr)
     test_zeros = np.zeros((test_gaussian_box.num_clean_skewers,117))
     npt.assert_array_equal(test_gaussian_box._form_voigt_profile_box(1.*(u.km/u.s),1.*(u.km/u.s),1.,wrap_around=10)[0][no_voigt_profile_bool_arr],test_zeros)
+
+def test_add_voigt_profiles():
+    test_box_size = {'x': 25. * u.Mpc, 'y': 25. * u.Mpc, 'z': 25. * u.Mpc}
+    test_gaussian_box_instance = GaussianBox(test_box_size, {'x': 25, 'y': 25, 'z': 11}, 4., (67.11 * u.km) / (u.s * u.Mpc),0.3161)
+    test_gaussian_realisation = test_gaussian_box_instance.isotropic_power_law_gauss_realisation(0.,1./u.Mpc,1.)
+    test_voigt_box = test_gaussian_box_instance.add_voigt_profiles(test_gaussian_realisation, 1, 1.*(u.km/u.s),1.*(u.km/u.s),0.)[0]
+    npt.assert_array_equal(test_voigt_box, test_gaussian_realisation)
+
 
 def test_3D_flux_power_zeros():
     test_box = np.zeros((100,150,200))

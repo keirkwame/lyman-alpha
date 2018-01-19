@@ -7,9 +7,11 @@ import scipy.integrate as spi
 import scipy.optimize as spo
 import copy as cp
 import astropy.units as u
-import spectra as sa
-import griddedspectra as gs
-import randspectra as rs
+
+from fake_spectra import spectra as sa
+from fake_spectra import griddedspectra as gs
+from fake_spectra import randspectra as rs
+
 import os
 import sys
 

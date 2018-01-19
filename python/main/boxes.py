@@ -6,9 +6,11 @@ import scipy.integrate as spi
 import scipy.optimize as spo
 import copy as cp
 import astropy.units as u
-import spectra as sa
-import griddedspectra as gs
-import randspectra as rs
+
+from fake_spectra import spectra as sa
+from fake_spectra import griddedspectra as gs
+from fake_spectra import randspectra as rs
+
 import sys
 
 from power_spectra import *
@@ -154,7 +156,7 @@ class GaussianBox(Box):
         return 0
 
     def _choose_location_voigt_profiles_in_sky(self):
-        self._voigt_profile_skewers_index_arr = npr.choice(self.nskewers, self._num_voigt, replace=True) #] = True #Repeating
+        self._voigt_profile_skewers_index_arr = npr.choice(self.nskewers, self._num_voigt, replace=True) #More than one
         self._voigt_profile_skewers_bool_arr[self._voigt_profile_skewers_index_arr] = True
         self.num_clean_skewers = self.nskewers - np.sum(self._voigt_profile_skewers_bool_arr)
 
@@ -163,8 +165,12 @@ class GaussianBox(Box):
         voigt_profiles_unwrapped = voigt_amplified(z_values[np.newaxis, :], sigma, gamma, amp, z0_values[:, np.newaxis])
         voigt_profiles_wrapped = np.sum(voigt_profiles_unwrapped.reshape(voigt_profiles_unwrapped.shape[0], 1 + (2 * wrap_around),-1), axis=-2)
         j = 0
-        for i in self._voigt_profile_skewers_index_arr: #Loop necessary for fully random allocation - MAKE QUICKER!!!
-            voigt_profile_box[i] += voigt_profiles_wrapped[j]
+        for i in self._voigt_profile_skewers_index_arr:
+            if is_astropy_quantity(voigt_profiles_wrapped[j]):
+                additional_profile = voigt_profiles_wrapped[j].value
+            else:
+                additional_profile = voigt_profiles_wrapped[j]
+            voigt_profile_box[i] += additional_profile
             j+=1
         return voigt_profile_box, voigt_profiles_unwrapped
 
@@ -178,11 +184,11 @@ class GaussianBox(Box):
         self._num_voigt = num_voigt
         self._choose_location_voigt_profiles_in_sky()
         voigt_profile_box,voigt_unwrapped = self._form_voigt_profile_box(sigma, gamma, amp, wrap_around)
-        return gauss_box - (voigt_profile_box.reshape(gauss_box.shape) * (1. + 0.j)),voigt_unwrapped
+        return gauss_box - (voigt_profile_box.reshape(gauss_box.shape) * (1. + 0.j)), voigt_unwrapped
 
 
 class SimulationBox(Box):
-    """Sub-class to generate a box of Lyman-alpha spectra drawn from Simeon's simulations"""
+    """Sub-class to generate a box of Lyman-alpha spectra drawn from HDF5 simulations"""
     def __init__(self,snap_num,snap_dir,grid_samps,spectrum_resolution,reload_snapshot=True,spectra_savefile_root='gridded_spectra',spectra_savedir=None):
         self._n_samp = {}
         self._n_samp['x'] = grid_samps
@@ -220,21 +226,23 @@ class SimulationBox(Box):
         self._col_dens_threshold = 2.e+20 / (u.cm * u.cm) #Default values
         self._dodge_dist = 10. * u.kpc
 
-    def _generate_general_spectra_instance(self,cofm):
+    def _generate_general_spectra_instance(self, cofm):
         axis = np.ones(cofm.shape[0])
         return sa.Spectra(self._snap_num, self._snap_dir, cofm, axis, res=self._spectrum_resolution.value, reload_file=True)
 
     def get_optical_depth(self):
-        tau = self.spectra_instance.get_tau(self.element, self.ion, int(self.line_wavelength.value)) #SLOW if not reload
+        tau = self.spectra_instance.get_tau(self.element, self.ion, int(self.line_wavelength.value))
         self.spectra_instance.save_file()  # Save spectra to file
         return tau
 
-    def get_column_density(self, ion = None):
-        if ion is None: #Ability to specify ionic species
+    def get_column_density(self, element = None, ion = None):
+        if element is None:
+            element = self.element
+        if ion is None:
             ion = self.ion
-        col_dens = self.spectra_instance.get_col_density(self.element, ion) / (u.cm * u.cm) #SLOW if not reloading
+        col_density = self.spectra_instance.get_col_density(element, ion) / (u.cm * u.cm)
         self.spectra_instance.save_file()
-        return col_dens
+        return col_density
 
     def _get_scale(self, tau, mean_flux_desired): #Courtesy of Simeon Bird
         """Get the factor by which we need to multiply the optical depth to get a desired mean flux.
@@ -248,11 +256,11 @@ class SimulationBox(Box):
         print("Scaled by:", scale)
         return scale
 
-    def _get_delta_flux(self,tau,mean_flux_desired,mean_flux_specified,tau_scaling_specified):
+    def _get_delta_flux(self, tau, mean_flux_desired, mean_flux_specified, tau_scaling_specified):
         if mean_flux_desired is None:
             tau_scaling = 1.
         else:
-            tau_scaling = self._get_scale(tau,mean_flux_desired)
+            tau_scaling = self._get_scale(tau, mean_flux_desired)
 
         if tau_scaling_specified is not None:
             tau_scaling = tau_scaling_specified
@@ -262,8 +270,8 @@ class SimulationBox(Box):
         else:
             mean_flux = mean_flux_specified
 
-        print(mean_flux)
-        return np.exp(-1.*tau*tau_scaling) / mean_flux - 1.
+        print('Mean flux = %f' %mean_flux)
+        return np.exp(-1. * tau * tau_scaling) / mean_flux - 1.
 
     def _get_delta_density(self,density):
         mean_density = np.mean(density)

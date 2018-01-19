@@ -8,9 +8,11 @@ import scipy.special as sps
 import copy as cp
 import astropy.units as u
 import astropy.constants as c
-import spectra as sa
-import griddedspectra as gs
-import randspectra as rs
+
+from fake_spectra import spectra as sa
+from fake_spectra import griddedspectra as gs
+from fake_spectra import randspectra as rs
+
 import sys
 
 def sort_3D_to_1D(array_3D, args_1D):
@@ -83,13 +85,14 @@ def voigt_amplified(x, sigma, gamma, amp, x0):
     return (amp * voigt(x, sigma, gamma, x0)) / voigt(x0, sigma, gamma, x0)
 
 def full_voigt_optical_depth(velocity_samples, column_density, central_velocity, central_wavelength = 1215.67 * u.Angstrom): #lambda_0 for Ly-a forest
-    gas_temperature = 1.e+4 * u.K #CHECK!!!
+    gas_temperature = 1.e+4 * u.K
     transition_wavelength = 1215.67 * u.Angstrom #Ly-a
     ion_mass = c.m_p #Ionised hydrogen - Ly-a
     oscillator_strength = 0.4164 #Ly-a
-    damping_constant = 6.265 * (10 ** 8) * u.Hz #1.e-8 * u.Hz #Not exact
+    damping_constant = 6.265 * (10 ** 8) * u.Hz
 
-    wavelength_samples = central_wavelength * (1 + ((velocity_samples - central_velocity) / c.c))
+    #wavelength_samples = central_wavelength * (1 + ((velocity_samples - central_velocity) / c.c))
+    wavelength_samples = central_wavelength * np.exp((velocity_samples - central_velocity) / c.c)
 
     del_lambda_D = transition_wavelength * mh.sqrt(2. * c.k_B * gas_temperature / ion_mass / (c.c ** 2))
     x = (wavelength_samples - central_wavelength) / del_lambda_D
@@ -111,12 +114,7 @@ def voigt_power_spectrum(spectrum_length, velocity_bin_width, mean_flux, column_
     else:
         optical_depth = voigt_amplified(velocity_samples, sigma, gamma, amp, 0. * u.km / u.s)
     flux = np.exp(-1. * optical_depth.value)
-    #flux = np.exp(-5.e-19 * column_density.value / (((velocity_samples.value + 1.e-30) / (7501. / 75.) / 0.704) ** 2))
     delta_flux = flux / mean_flux - 1.
-
-    '''delta_flux = np.zeros_like(flux)
-    delta_flux[(velocity_samples > -100. * u.km / u.s) * (velocity_samples < 100. * u.km / u.s)] = 1'''
-
     delta_flux_FT = np.fft.rfft(delta_flux) / delta_flux.shape[0]
     k_samples = np.fft.rfftfreq(delta_flux.shape[0], d = velocity_bin_width) * 2. * mh.pi
     return (np.real(delta_flux_FT)**2 + np.imag(delta_flux_FT)**2) * spectrum_length, k_samples, velocity_samples, optical_depth, del_lambda_D, z, wavelength_samples, delta_flux_FT, delta_flux
