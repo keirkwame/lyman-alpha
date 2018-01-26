@@ -622,13 +622,13 @@ def plot_bias_tests(k_max, bias, beta, bias_plus_one_sigma, bias_minus_one_sigma
     plt.savefig(f_name)
 
 def make_plot_BOSS_comparison():
-    f_name = '/Users/keir/Documents/dla_papers/paper_3D/figures/BOSS_comparison2.pdf'
+    f_name = '/Users/kwame/Documents/dla_papers/paper_3D/BOSS_comparison_sim_fitted.pdf'
 
-    low_z_file = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/power_DLAs_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz')
-    low_z_samples = np.load('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/samples_residual_z_2_44.npy')
-    low_z_F_Voigt = np.loadtxt('/Users/keir/Documents/lyman_alpha/simulations/illustris_big_box_spectra/snapdir_064/F_Voigt_residual_z_2_44_plot_large_scales.dat')
+    low_z_file = np.load('/Users/kwame/Simulations/Illustris/snapdir_064/power_DLAs_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz')
+    low_z_samples = np.load('/Users/kwame/Simulations/Illustris/snapdir_064/samples_residual_z_2_44.npy')
+    low_z_F_Voigt = np.loadtxt('/Users/kwame/Simulations/Illustris/snapdir_064/F_Voigt_residual_z_2_44_plot_large_scales.dat')
 
-    L_HCD = 24.341 #Mpc / h
+    L_HCD = 6. #24.341 #Mpc / h
 
     k_mod_plot = np.linspace(1.e-2, 1, 10000)
     mu_plot = np.nanmean(low_z_file['arr_3'], axis = 0)
@@ -657,17 +657,20 @@ def plot_BOSS_comparison(k_mod_plot, power_max_posterior, power_BOSS, f_name):
     figure, axis = plt.subplots(1)
     plot_instance = Plot()
 
-    axis.plot([], label='Voigt model', color='gray', ls='-')
-    axis.plot([], label='BOSS model', color='gray', ls='--')
+    axis.plot([], label='Voigt model [Rogers et al. 2018]', color='gray', ls='-')
+    axis.plot([], label='BOSS model [Rogers et al. 2018]', color='gray', ls='--') #Bautista et al. 2017
 
     figure, axis = plot_instance.plot_lines([k_mod_plot,]*4, power_max_posterior, line_labels[:4], line_colours[:4], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[:4], fig=figure, ax=axis)
     figure, axis = plot_instance.plot_lines([k_mod_plot,]*4, power_BOSS, line_labels[4:], line_colours[4:], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[4:], fig=figure, ax=axis)
 
     axis.axhline(y=0., color='black', ls=':')
     axis.set_xlim([1.e-2, 1.])
-    axis.legend(frameon=False, fontsize=13.0)
-    axis.annotate('', xy = (0.35, 0.35), xytext = (0.48, 0.77), xycoords = 'axes fraction', textcoords = 'axes fraction', arrowprops = {'arrowstyle': '->'})
-    plt.text(0.35, 0.35, r'Decreasing $\mu$', transform=axis.transAxes, horizontalalignment = 'center', verticalalignment = 'top', fontsize = 12.0)
+    axis.set_ylim([-0.00155, 0.00595])
+    axis.legend(frameon=True, fontsize=9.3, edgecolor='white', facecolor='white', framealpha=1.) #, ncol=2) #, loc='upper right')
+    #axis.annotate('', xy = (0.35, 0.35), xytext = (0.48, 0.77), xycoords = 'axes fraction', textcoords = 'axes fraction', arrowprops = {'arrowstyle': '->'})
+    axis.annotate('', xy = (0.35, 0.35), xytext = (0.61, 0.91), xycoords = 'axes fraction', textcoords = 'axes fraction', arrowprops = {'arrowstyle': '->'}) #sim_fitted
+    #plt.text(0.35, 0.35, r'Decreasing $\mu$', transform=axis.transAxes, horizontalalignment = 'center', verticalalignment = 'top', fontsize = 12.0)
+    plt.text(0.61, 0.91, r'Decreasing $\mu$', transform=axis.transAxes, horizontalalignment = 'left', verticalalignment = 'bottom', fontsize = 12.0) #sim_fitted
 
     figure.subplots_adjust(right=0.97, left=0.17, bottom=0.13)  # figure.subplots_adjust(hspace=0., right=0.98, top=0.99, bottom=0.04, left=0.08)
     plt.savefig(f_name)
@@ -1218,7 +1221,7 @@ if __name__ == "__main__":
 
     #3D paper
     #make_plot_categories()
-    make_plot_F_HCD_Voigt()
+    make_plot_BOSS_comparison()
 
     #Thesis
     #make_plot_sample_forest_spectra()
