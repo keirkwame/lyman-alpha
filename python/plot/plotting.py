@@ -622,7 +622,7 @@ def plot_bias_tests(k_max, bias, beta, bias_plus_one_sigma, bias_minus_one_sigma
     plt.savefig(f_name)
 
 def make_plot_BOSS_comparison():
-    f_name = '/Users/kwame/Documents/dla_papers/paper_3D/BOSS_comparison_sim_fitted.pdf'
+    f_name = '/Users/kwame/Documents/dla_papers/paper_3D/BOSS_comparison_sim_fitted2.pdf'
 
     low_z_file = np.load('/Users/kwame/Simulations/Illustris/snapdir_064/power_DLAs_dodged_64_750_10_4_6_evenMu_kMax_1.00.npz')
     low_z_samples = np.load('/Users/kwame/Simulations/Illustris/snapdir_064/samples_residual_z_2_44.npy')
@@ -658,7 +658,7 @@ def plot_BOSS_comparison(k_mod_plot, power_max_posterior, power_BOSS, f_name):
     plot_instance = Plot()
 
     axis.plot([], label='Voigt model [Rogers et al. 2018]', color='gray', ls='-')
-    axis.plot([], label='BOSS model [Rogers et al. 2018]', color='gray', ls='--') #Bautista et al. 2017
+    axis.plot([], label='BOSS model [Bautista et al. 2017]', color='gray', ls='--')
 
     figure, axis = plot_instance.plot_lines([k_mod_plot,]*4, power_max_posterior, line_labels[:4], line_colours[:4], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[:4], fig=figure, ax=axis)
     figure, axis = plot_instance.plot_lines([k_mod_plot,]*4, power_BOSS, line_labels[4:], line_colours[4:], x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles[4:], fig=figure, ax=axis)
