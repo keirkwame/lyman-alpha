@@ -71,8 +71,8 @@ if __name__ == "__main__":
     fourier_estimator_instance_dodged = fou.FourierEstimator3D(test_gaussian_box_dodged)
 
     #Power spectra
-    power_bin,k_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord2=False,std_err=False)
-    power_bin_dodged = fourier_estimator_instance_dodged.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,bin_coord1=False,bin_coord2=False,count=False,std_err=False)
+    power_bin,k_bin,bin_count = fourier_estimator_instance.get_power_3D_two_coords_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, bin_coord2=False, std_err=False)
+    power_bin_dodged = fourier_estimator_instance_dodged.get_power_3D_two_coords_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, bin_coord1=False, bin_coord2=False, count=False, std_err=False)
 
     '''power_unbinned = fourier_estimator_instance.get_flux_power_3D()
     power_unbinned_dodged = fourier_estimator_instance_dodged.get_flux_power_3D()'''

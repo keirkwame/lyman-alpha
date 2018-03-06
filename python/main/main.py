@@ -58,11 +58,11 @@ def boxes_to_power_3D_binned(simu_box,k_box,n_bins,norm=True):
 
 def boxes_to_power_3D_mod_k_unique(simu_box,k_box,norm=True):
     power_instance = FourierEstimator3D(simu_box)
-    return power_instance.get_flux_power_3D_unique(k_box, norm=norm)
+    return power_instance.get_power_3D_unique(k_box, norm=norm)
 
 def boxes_to_power_3D_cylindrical_binned(simu_box,k_z_box,k_perp_box,n_bins_z,n_bins_perp,norm=True):
     power_instance = FourierEstimator3D(simu_box)
-    return power_instance.get_flux_power_3D_cylindrical_coords(k_z_box,k_perp_box,n_bins_z,n_bins_perp,norm=norm)
+    return power_instance.get_power_3D_cylindrical_coords(k_z_box, k_perp_box, n_bins_z, n_bins_perp, norm=norm)
 
 def boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins,norm=True):
     power_instance = FourierEstimator3D(simu_box)
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     power_lls_instance = FourierEstimator1D(simu_box_lls)
     power_lls = power_lls_instance.get_flux_power_1D()'''
     power_forest_instance = FourierEstimator1D(simu_box) #_forest)
-    power_forest = power_forest_instance.get_flux_power_1D()
+    power_forest = power_forest_instance.get_power_1D()
 
     '''power_hcd = ((power_lls * np.sum(mask_lls)) + (power_sub_dla * np.sum(mask_sub_dla)) + (power_small_dla * np.sum(mask_small_dla)) + (power_large_dla * np.sum(mask_large_dla))) / (mask_forest.size - np.sum(mask_forest))
     power_recon = ((power_hcd * (mask_forest.size - np.sum(mask_forest))) + (power_forest * np.sum(mask_forest))) / mask_forest.size'''

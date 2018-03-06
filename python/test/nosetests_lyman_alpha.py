@@ -59,35 +59,34 @@ def test_add_voigt_profiles():
     test_voigt_box = test_gaussian_box_instance.add_voigt_profiles(test_gaussian_realisation, 1, 1.*(u.km/u.s),1.*(u.km/u.s),0.)[0]
     npt.assert_array_equal(test_voigt_box, test_gaussian_realisation)
 
-
-def test_3D_flux_power_zeros():
+def test_3D_power_zeros():
     test_box = np.zeros((100,150,200))
     test_estimator = FourierEstimator3D(test_box)
-    npt.assert_array_equal(test_estimator.get_flux_power_3D()[0],test_box)
+    npt.assert_array_equal(test_estimator.get_power_3D()[0], test_box)
 
 def test_cross_power_spectrum():
     test_box_1 = npr.rand(100, 150, 200)
     test_box_2 = npr.rand(100, 150, 200)
     test_estimator_1 = FourierEstimator3D(test_box_1)
     test_estimator_2 = FourierEstimator3D(test_box_2)
-    test_estimator_cross = FourierEstimator3D(test_box_1,second_box=test_box_2)
+    test_estimator_cross = FourierEstimator3D(test_box_1, second_box = test_box_2)
     test_estimator_total = FourierEstimator3D(test_box_1 + test_box_2)
-    total_power = test_estimator_1.get_flux_power_3D(norm=False)[0] + test_estimator_2.get_flux_power_3D(norm=False)[0] + (2. * test_estimator_cross.get_flux_power_3D(norm=False)[0])
-    npt.assert_allclose(total_power,test_estimator_total.get_flux_power_3D(norm=False)[0])
+    total_power = test_estimator_1.get_power_3D(norm=False)[0] + test_estimator_2.get_power_3D(norm=False)[0] + (2. * test_estimator_cross.get_power_3D(norm=False)[0])
+    npt.assert_allclose(total_power, test_estimator_total.get_power_3D(norm = False)[0])
 
 def test_form_return_list():
     test_size = 10000
     n_bins_x_y = (10, 20)
     test_x_y = npr.rand(2, test_size-1)
     test_f = np.zeros(test_size) #Real-space test box
-    test_estimator = FourierEstimator3D(test_f.reshape(10,10,100))
-    expected_arrays = np.zeros((2,n_bins_x_y[0],n_bins_x_y[1]))
+    test_estimator = FourierEstimator3D(test_f.reshape(10, 10, 100))
+    expected_arrays = np.zeros((2, n_bins_x_y[0], n_bins_x_y[1]))
     npt.assert_array_equal(np.array(test_estimator._form_return_list(test_x_y[0],test_x_y[1],n_bins_x_y[0],n_bins_x_y[1],False,False,False,False,True)),expected_arrays)
 
 def test_bin_f_x_y_histogram():
     test_size = 10000
-    n_bins_x_y = (10,20)
-    test_x_y = npr.rand(2,test_size)
+    n_bins_x_y = (10, 20)
+    test_x_y = npr.rand(2, test_size)
     test_f = np.ones(test_size)
     npt.assert_array_equal(bin_f_x_y_histogram(test_x_y[0],test_x_y[1],test_f,n_bins_x_y[0],n_bins_x_y[1]),np.ones(n_bins_x_y))
 
@@ -105,36 +104,14 @@ def test_bin_f_x_y_histogram_standard_error():
 def test_calculate_local_average_of_array():
     test_box = np.zeros((100, 150, 200))
     bin_size = 5
-    npt.assert_array_equal(calculate_local_average_of_array(test_box,bin_size),test_box[...,:get_end_index(bin_size)])
+    npt.assert_array_equal(calculate_local_average_of_array(test_box, bin_size) ,test_box[...,:get_end_index(bin_size)])
 
 def test_make_box_hermitian():
-    test_box = npr.rand(10,11,12)
+    test_box = npr.rand(10, 11, 12)
     hermitian_box = make_box_hermitian(test_box)
-    real_box = np.fft.ifftn(hermitian_box,s=(10,11,12),axes=(0,1,2))
-    npt.assert_allclose(real_box.imag,np.zeros_like(real_box.imag),atol=1.e-16)
+    real_box = np.fft.ifftn(hermitian_box,s=(10, 11, 12),axes=(0, 1, 2))
+    npt.assert_allclose(real_box.imag, np.zeros_like(real_box.imag), atol=1.e-16)
 
 def test_gen_log_space():
     array_length = 100000
-    npt.assert_array_equal(gen_log_space(array_length,array_length),np.arange(array_length))
-
-
-#Pipeline tests - will set up tests to test all combinations of boxes and Fourier estimators
-
-'''def test_3D_flux_power_multipole(): #NEEDS MODIFYING
-    pow_index = 0.
-    pow_pivot = 1. / u.Mpc
-    pow_amp = 1.
-    box_size = {'x': 25 * u.Mpc, 'y': 25 * u.Mpc, 'z': 25 * u.Mpc}
-    n_samp = {'x': 201, 'y': 201, 'z': 201}
-    redshift = 2.
-    H0 = (67.31 * u.km) / (u.s * u.Mpc)
-    omega_m = 0.3149
-
-    multipole = 0
-    n_bins = 1000
-
-    simu_box, k_box, mu_box = isotropic_power_spectrum_to_boxes(pow_index,pow_pivot,pow_amp,box_size,n_samp,redshift, H0,omega_m)
-    power_binned_ell,k_binned_ell,power_mu_sorted = boxes_to_power_3D_multipole(multipole,simu_box,k_box,mu_box,n_bins)
-    power_instance = IsotropicPowerLawPowerSpectrum(pow_index, pow_pivot, pow_amp)
-    true_power = power_instance.evaluate3d(k_binned_ell)
-    npt.assert_array_equal(power_binned_ell[1:]*(201**6),true_power[1:])'''
+    npt.assert_array_equal(gen_log_space(array_length, array_length), np.arange(array_length))

@@ -77,7 +77,7 @@ if __name__ == "__main__":
     power_theory_binned = uti.bin_f_x_y_histogram(k_box.flatten()[1:],np.absolute(mu_box).flatten()[1:],power_theory_box.flatten()[1:],k_bin_edges,mu_bin_edges)
 
     #Power spectra
-    power_bin,k_bin,mu_bin,bin_count = fourier_estimator_instance.get_flux_power_3D_two_coords_hist_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,std_err=False)
+    power_bin,k_bin,mu_bin,bin_count = fourier_estimator_instance.get_power_3D_two_coords_binned(k_box, np.absolute(mu_box), k_bin_edges, mu_bin_edges, std_err=False)
     #power_raw = fourier_estimator_instance.get_flux_power_3D()[0]
 
     np.savez(save_filename, power_bin, k_bin, bin_count, mu_bin, power_theory_binned)

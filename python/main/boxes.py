@@ -273,47 +273,47 @@ class SimulationBox(Box):
         print('Mean flux = %f' %mean_flux)
         return np.exp(-1. * tau * tau_scaling) / mean_flux - 1.
 
-    def _get_delta_density(self,density):
+    def _get_delta_density(self, density):
         mean_density = np.mean(density)
         return density / mean_density - 1.
 
-    def skewers_realisation(self,mean_flux_desired=None,mean_flux_specified=None,tau_scaling_specified=None):
+    def skewers_realisation(self, mean_flux_desired = None, mean_flux_specified = None, tau_scaling_specified = None):
         tau = self.get_optical_depth()
-        delta_flux = self._get_delta_flux(tau,mean_flux_desired,mean_flux_specified,tau_scaling_specified)
+        delta_flux = self._get_delta_flux(tau, mean_flux_desired, mean_flux_specified, tau_scaling_specified)
         return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
 
     def skewers_realisation_hydrogen_overdensity(self, ion = None):
-        col_dens = self.get_column_density(ion = ion)
-        delta_density = self._get_delta_density(col_dens)
+        column_density = self.get_column_density(ion = ion)
+        delta_density = self._get_delta_density(column_density)
         return delta_density.reshape((self._grid_samps, self._grid_samps, -1))
 
-    def skewers_realisation_without_DLAs(self,mean_flux_desired=None,mean_flux_specified=None,skewers_with_DLAs_bool_arr=None):
+    def skewers_realisation_without_DLAs(self,mean_flux_desired=None,mean_flux_specified=None,tau_scaling_specified=None,skewers_with_DLAs_bool_arr=None):
         tau = self.get_optical_depth()
         if skewers_with_DLAs_bool_arr == None:
             skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.get_column_density())
         tau_without_DLAs = tau[~ skewers_with_DLAs_bool_arr]
-        return self._get_delta_flux(tau_without_DLAs, mean_flux_desired, mean_flux_specified)
+        return self._get_delta_flux(tau_without_DLAs, mean_flux_desired, mean_flux_specified, tau_scaling_specified)
 
-    def skewers_realisation_with_DLAs_only(self,mean_flux_desired=None,mean_flux_specified=None,skewers_with_DLAs_bool_arr=None):
+    def skewers_realisation_with_DLAs_only(self,mean_flux_desired=None,mean_flux_specified=None,tau_scaling_specified=None,skewers_with_DLAs_bool_arr=None):
         tau = self.get_optical_depth()
         if skewers_with_DLAs_bool_arr == None:
             skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.get_column_density())
         tau_with_DLAs_only = tau[skewers_with_DLAs_bool_arr]
-        return self._get_delta_flux(tau_with_DLAs_only, mean_flux_desired, mean_flux_specified)
+        return self._get_delta_flux(tau_with_DLAs_only, mean_flux_desired, mean_flux_specified, tau_scaling_specified)
 
-    def skewers_realisation_subset(self,boolean_mask,mean_flux_desired=None,mean_flux_specified=None):
+    def skewers_realisation_subset(self, boolean_mask, mean_flux_desired=None, mean_flux_specified=None, tau_scaling_specified=None):
         tau = self.get_optical_depth()[boolean_mask.flatten()]
-        return self._get_delta_flux(tau, mean_flux_desired, mean_flux_specified)
+        return self._get_delta_flux(tau, mean_flux_desired, mean_flux_specified, tau_scaling_specified)
 
     def max_local_sum_of_column_density_in_each_skewer(self):
         col_dens_local_sum = self._get_local_sum_of_column_density(self.get_column_density())
-        return np.max(col_dens_local_sum,axis=-1).reshape((self._grid_samps, self._grid_samps))
+        return np.max(col_dens_local_sum, axis=-1).reshape((self._grid_samps, self._grid_samps))
 
-    def _get_skewers_with_DLAs_bool_arr_simple_threshold(self,col_dens):
+    def _get_skewers_with_DLAs_bool_arr_simple_threshold(self, col_dens):
         return np.max(col_dens, axis=-1) > self._col_dens_threshold
 
-    def _get_local_sum_of_column_density(self,col_dens):
-        size_of_bin_in_velocity = 100. * (u.km / u.s)  # self.voxel_velocities['z'] #MAKE INPUT ARGUMENT!!!
+    def _get_local_sum_of_column_density(self, col_dens):
+        size_of_bin_in_velocity = 100. * (u.km / u.s)
         size_of_bin_in_samples = round(size_of_bin_in_velocity.value / self.voxel_velocities['z'].value)
         print("\nSize of bin in samples = %i" % size_of_bin_in_samples)
         return (calculate_local_average_of_array(col_dens.value,size_of_bin_in_samples) * size_of_bin_in_samples) / (u.cm * u.cm)
@@ -324,7 +324,6 @@ class SimulationBox(Box):
 
     def _get_skewers_with_DLAs_bool_arr(self,col_dens):
         assert is_astropy_quantity(col_dens)
-        #return self._get_skewers_with_DLAs_bool_arr_simple_threshold(col_dens)
         return self._get_skewers_with_DLAs_bool_arr_local_sum_threshold(col_dens)
 
     def _get_optical_depth_for_new_skewers(self, skewers_with_DLAs_bool_arr):
@@ -333,22 +332,22 @@ class SimulationBox(Box):
         self.spectra_instance.tau[(self.element, self.ion, int(self.line_wavelength.value))][skewers_with_DLAs_bool_arr] = new_tau
 
     def _get_column_density_for_new_skewers(self, skewers_with_DLAs_bool_arr):
-        new_skewers_cofm = self.spectra_instance.cofm[skewers_with_DLAs_bool_arr]  # Slicing out skewers with DLA's
+        new_skewers_cofm = self.spectra_instance.cofm[skewers_with_DLAs_bool_arr] #Slicing out skewers with DLAs
         new_col_dens = self._generate_general_spectra_instance(new_skewers_cofm).get_col_density(self.element,self.ion) / (u.cm * u.cm)
-        self.spectra_instance.colden[(self.element, self.ion)][skewers_with_DLAs_bool_arr] = new_col_dens.value  # Upd. col dens
+        self.spectra_instance.colden[(self.element, self.ion)][skewers_with_DLAs_bool_arr] = new_col_dens.value
 
-    def _form_skewers_realisation_dodging_DLAs_single_iteration(self,skewers_with_DLAs_bool_arr):
-        print("Number of skewers with DLA's = %i" % np.sum(skewers_with_DLAs_bool_arr))
-        self.spectra_instance.cofm[skewers_with_DLAs_bool_arr, 1] += self._dodge_dist.value  # Dodging in y-axis
+    def _form_skewers_realisation_dodging_DLAs_single_iteration(self, skewers_with_DLAs_bool_arr):
+        print("Number of skewers with DLAs = %i" % np.sum(skewers_with_DLAs_bool_arr))
+        self.spectra_instance.cofm[skewers_with_DLAs_bool_arr, 1] += self._dodge_dist.value
         self._get_column_density_for_new_skewers(skewers_with_DLAs_bool_arr)
         skewers_with_DLAs_bool_arr = self._get_skewers_with_DLAs_bool_arr(self.spectra_instance.colden[(self.element,self.ion)] / (u.cm * u.cm))
         return skewers_with_DLAs_bool_arr
 
     def _get_column_density_for_new_skewers_loop(self, skewers_with_DLAs_bool_arr):
-        while np.sum(skewers_with_DLAs_bool_arr) > 0: #Continue dodging while there remains DLA's
+        while np.sum(skewers_with_DLAs_bool_arr) > 0: #Continue dodging while there remain DLAs
             skewers_with_DLAs_bool_arr = self._form_skewers_realisation_dodging_DLAs_single_iteration(skewers_with_DLAs_bool_arr)
 
-    def _save_new_skewers_realisation_dodging_DLAs(self,savefile_root): #spectra_savedir can't be None!!!
+    def _save_new_skewers_realisation_dodging_DLAs(self, savefile_root):
         if self.spectra_savedir == None:
             savefile_tuple = (self._snap_dir + '/snapdir_' + str(self._snap_num).rjust(3,'0'),savefile_root,self._grid_samps,self._spectrum_resolution.value)
         else:
