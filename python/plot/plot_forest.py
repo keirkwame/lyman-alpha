@@ -1,6 +1,7 @@
 import sys
 import math as mh
 import numpy as np
+import numpy.testing as npt
 import matplotlib
 matplotlib.use('PDF')
 import matplotlib.pyplot as plt
@@ -36,23 +37,37 @@ def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux
 
     return simulation_box_instance
 
-def plot_CDDF(plotname, cddf_savename, simulation_box_instance):
-    column_density = simulation_box_instance.get_column_density()
-    column_density_log10_cm2_no0 = np.log10(column_density[column_density > 0. / (u.cm ** 2)].value)
+def plot_CDDF(plotname, cddf_savename, simulation_box_instance, load_cddf=False):
+    figure, axis = plt.subplots()
 
-    histogram_bin_edges = np.arange(mh.floor(np.min(column_density_log10_cm2_no0)), mh.ceil(np.max(column_density_log10_cm2_no0))+0.1, 0.1)
-    cddf = np.histogram(column_density_log10_cm2_no0, bins=histogram_bin_edges)
-    np.savez(cddf_savename, cddf, histogram_bin_edges)
+    if load_cddf is False:
+        column_density = simulation_box_instance.get_column_density()
+        column_density_log10_cm2_no0 = np.log10(column_density[column_density > 0. / (u.cm ** 2)].value)
 
-    '''figure, axis = plt.subplots()
-    axis.hist(column_density.flatten(), bins='auto', normed=True, histtype='step')
-    axis.set_xscale('log')
-    axis.set_yscale('log')
-    axis.set_xlabel(r'$N$(HI) ($\mathrm{cm}^{-2}$)')
-    axis.set_ylabel(r'CDDF')
-    plt.savefig(plotname)'''
+        histogram_bin_edges = np.arange(mh.floor(np.min(column_density_log10_cm2_no0)), mh.ceil(np.max(column_density_log10_cm2_no0))+0.1, 0.1)
+        cddf = np.histogram(column_density_log10_cm2_no0, bins=histogram_bin_edges)
+        np.savez(cddf_savename, cddf, histogram_bin_edges)
 
-    return column_density
+        #axis.hist(column_density.flatten(), bins='auto', normed=True, histtype='step')
+        #axis.set_xscale('log')
+        #axis.set_yscale('log')
+
+        return column_density
+    else:
+        cddf_file = np.load(cddf_savename)
+        cddf = cddf_file['arr_0']
+        histogram_bin_edges = cddf_file['arr_1']
+        npt.assert_array_equal(cddf[1], histogram_bin_edges)
+        histogram_bin_centres = (histogram_bin_edges[:-1] + histogram_bin_edges[1:]) / 2
+
+        #return cddf_file
+
+        axis.scatter(histogram_bin_centres, np.log10(cddf[0]))
+        axis.axvline(x=mh.log10(1.6e17), color='black', ls='--')
+        axis.axvline(x=mh.log10(2.e20), color='black', ls='--')
+        axis.set_xlabel(r'log[$N$(HI) ($\mathrm{cm}^{-2}$)]')
+        axis.set_ylabel(r'CDDF (log[number of spectral pixels])')
+        plt.savefig(plotname)
 
 if __name__ == "__main__":
     snapshot_directory = sys.argv[1] #'/home/jsbolton/Sherwood/planck1_80_1024'
@@ -64,4 +79,4 @@ if __name__ == "__main__":
 
     sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 750, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=20.*u.km/u.s)
     #output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=0, flux_ascii_filename=flux_ascii_filename)
-    output = plot_CDDF(plotname, cddf_savename, sim_box_ins)
+    output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
