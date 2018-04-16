@@ -69,14 +69,44 @@ def plot_CDDF(plotname, cddf_savename, simulation_box_instance, load_cddf=False)
         axis.set_ylabel(r'CDDF (log[number of spectral pixels])')
         plt.savefig(plotname)
 
+def plot_power_spectra(plotname, power_spectra_savename, simulation_box_instance):
+    hubble_constant = simulation_box_instance.spectra_instance.hubble
+    box_length = simulation_box_instance.spectra_instance.box * u.kpc
+    power_spectra_file = np.load(power_spectra_savename)
+    power_spectra = (power_spectra_file['arr_0'] * (box_length ** 3)).to(u.Mpc ** 3)
+    k = power_spectra_file['arr_1'] / u.Mpc
+    mu = power_spectra_file['arr_2']
+    n_samples_per_bin = power_spectra_file['arr_3']
+    error_bars = 2. * power_spectra / np.sqrt(n_samples_per_bin)
+
+    figure, axis = plt.subplots()
+    line_labels = [r'$0 < \mu < 0.25$', r'$0.25 < \mu < 0.5$', r'$0.5 < \mu < 0.75$', r'$0.75 < \mu < 1$']
+    for i in range(k.shape[1]): #Loop over mu bins
+        print('Plotting mu bin number', i+1)
+        x_plot = k[:,i] / hubble_constant
+        print(x_plot)
+        y_plot = power_spectra[:,i] * (hubble_constant ** 3)
+        print(y_plot)
+        axis.plot(x_plot, y_plot, label=line_labels[i])
+        print(error_bars[:,i])
+        #axis.errorbar(x_plot, y_plot.value, yerr=error_bars[:,i].value, ls='')
+    axis.legend(frameon=False)
+    axis.set_xscale('log')
+    axis.set_yscale('log')
+    axis.set_xlabel(r'$k$ ($h\,\mathrm{Mpc}^{-1}$)')
+    axis.set_ylabel(r'$P(k)$ ($\mathrm{Mpc}^3\,h^{-3}$)')
+    plt.savefig(plotname)
+
 if __name__ == "__main__":
     snapshot_directory = sys.argv[1] #'/home/jsbolton/Sherwood/planck1_80_1024'
     spectra_directory = sys.argv[2] #'/home/keir/Data/Sherwood/planck1_80_1024/snapdir_011'
 
-    plotname = spectra_directory + '/CDDF.pdf' #'/spectrum_750_25.pdf'
+    plotname = spectra_directory + '/power_spectra.pdf' #'/spectrum_750_25.pdf'
+    power_spectra_savename = spectra_directory + '/power_spectra.npz'
     cddf_savename = spectra_directory + '/CDDF.npz'
     flux_ascii_filename = None #'/Users/kwame/Simulations/Sherwood/planck1_80_1024/snapdir_011/spectest.txt'
 
     sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 750, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=20.*u.km/u.s)
     #output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=0, flux_ascii_filename=flux_ascii_filename)
-    output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
+    #output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
+    plot_power_spectra(plotname, power_spectra_savename, sim_box_ins)
