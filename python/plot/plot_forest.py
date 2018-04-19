@@ -33,7 +33,7 @@ def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux
     axis.set_ylim([-0.025, 1.025])
     axis.set_xlabel(r'km / s')
     axis.set_ylabel(r'Transmitted flux')
-    plt.savefig(plotname)
+    #plt.savefig(plotname)
 
     return simulation_box_instance
 
@@ -69,9 +69,10 @@ def plot_CDDF(plotname, cddf_savename, simulation_box_instance, load_cddf=False)
         axis.set_ylabel(r'CDDF (log[number of spectral pixels])')
         plt.savefig(plotname)
 
-def plot_power_spectra(plotname, power_spectra_savename, simulation_box_instance):
-    hubble_constant = simulation_box_instance.spectra_instance.hubble
-    box_length = simulation_box_instance.spectra_instance.box * u.kpc
+def plot_power_spectra(plotname, power_spectra_savename, simulation_box_instance=None, box_length=None, hubble_constant=None):
+    if simulation_box_instance is not None:
+        hubble_constant = simulation_box_instance.spectra_instance.hubble
+        box_length = simulation_box_instance.spectra_instance.box * u.kpc
     power_spectra_file = np.load(power_spectra_savename)
     power_spectra = (power_spectra_file['arr_0'] * (box_length ** 3)).to(u.Mpc ** 3)
     k = power_spectra_file['arr_1'] / u.Mpc
@@ -101,12 +102,13 @@ if __name__ == "__main__":
     snapshot_directory = sys.argv[1] #'/home/jsbolton/Sherwood/planck1_80_1024'
     spectra_directory = sys.argv[2] #'/home/keir/Data/Sherwood/planck1_80_1024/snapdir_011'
 
-    plotname = spectra_directory + '/power_spectra.pdf' #'/spectrum_750_25.pdf'
-    power_spectra_savename = spectra_directory + '/power_spectra.npz'
+    plotname = spectra_directory + '/power_spectra_font.pdf' #'/spectrum_750_25.pdf'
+    power_spectra_savename = spectra_directory + '/power_spectra_font.npz'
     cddf_savename = spectra_directory + '/CDDF.npz'
-    flux_ascii_filename = None #'/Users/kwame/Simulations/Sherwood/planck1_80_1024/snapdir_011/spectest.txt'
+    flux_ascii_filename = '/Users/kwame/Simulations/Sherwood/planck1_80_1024/snapdir_011/spectest.txt'
 
-    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 750, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=20.*u.km/u.s)
-    #output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=0, flux_ascii_filename=flux_ascii_filename)
+    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 2, 3. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=1.*u.km/u.s)
+    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3, flux_ascii_filename=flux_ascii_filename)
     #output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
-    plot_power_spectra(plotname, power_spectra_savename, sim_box_ins)
+    hubble_constant = 0.6724
+    #plot_power_spectra(plotname, power_spectra_savename, box_length=30. * u.Mpc / hubble_constant, hubble_constant=hubble_constant) #sim_box_ins)
