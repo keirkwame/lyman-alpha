@@ -33,7 +33,7 @@ def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux
     axis.set_ylim([-0.025, 1.025])
     axis.set_xlabel(r'km / s')
     axis.set_ylabel(r'Transmitted flux')
-    #plt.savefig(plotname)
+    plt.savefig(plotname)
 
     return simulation_box_instance
 
@@ -107,8 +107,8 @@ if __name__ == "__main__":
     cddf_savename = spectra_directory + '/CDDF.npz'
     flux_ascii_filename = '/Users/kwame/Simulations/Sherwood/planck1_80_1024/snapdir_011/spectest.txt'
 
-    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 2, 3. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=1.*u.km/u.s)
-    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3, flux_ascii_filename=flux_ascii_filename)
+    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 2, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=True) #, SPECTROGRAPH_FWHM=1.*u.km/u.s)
+    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3) #, flux_ascii_filename=flux_ascii_filename)
     #output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
     hubble_constant = 0.6724
     #plot_power_spectra(plotname, power_spectra_savename, box_length=30. * u.Mpc / hubble_constant, hubble_constant=hubble_constant) #sim_box_ins)
