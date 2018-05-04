@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import astropy.units as u
 
 import boxes as box
+import fourier_estimators as fou
+import save_power_3D as sav
 
 def get_simulation_box_instance(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS, SPECTRUM_RESOLUTION, SPECTRA_SAVEDIR, RELOAD_SNAPSHOT=False, SPECTRA_SAVEFILE_ROOT='gridded_spectra', SPECTROGRAPH_FWHM='default'):
     simulation_box_instance = box.SimulationBox(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS, SPECTRUM_RESOLUTION,
@@ -16,7 +18,7 @@ def get_simulation_box_instance(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS,
                                                 spectra_savedir=SPECTRA_SAVEDIR, spectrograph_FWHM=SPECTROGRAPH_FWHM)
     return simulation_box_instance
 
-def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux_ascii_filename=None):
+def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux_ascii_filename=None, rescale_ascii=None):
     optical_depth = simulation_box_instance.get_optical_depth()
     transmitted_flux = np.exp(-1. * optical_depth)
     velocity_samples = simulation_box_instance.r_i('z')
@@ -27,7 +29,14 @@ def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux
     if flux_ascii_filename is not None:
         velocity_flux = np.loadtxt(flux_ascii_filename, skiprows=2)
         simulation_box_instance._velocity_flux_ascii = velocity_flux
-        axis.plot(velocity_flux[:,0], velocity_flux[:,1], label=r'From ASCII file')
+        if rescale_ascii is True:
+            optical_depth_ascii = np.log(velocity_flux[:,1]) * -1.
+            mean_rescaling_factor = np.mean(optical_depth_ascii) / np.mean(optical_depth[spectrum_num])
+            print('mean[ASCII optical depth] / mean[optical depth] =', mean_rescaling_factor)
+            transmitted_flux_ascii = np.exp(-1. * optical_depth_ascii / mean_rescaling_factor)
+        else:
+            transmitted_flux_ascii = velocity_flux[:,1]
+        axis.plot(velocity_flux[:,0], transmitted_flux_ascii, label=r'From ASCII file')
         axis.legend(frameon=False)
 
     axis.set_ylim([-0.025, 1.025])
@@ -98,17 +107,37 @@ def plot_power_spectra(plotname, power_spectra_savename, simulation_box_instance
     axis.set_ylabel(r'$P(k)$ ($\mathrm{Mpc}^3\,h^{-3}$)')
     plt.savefig(plotname)
 
+def bin_matter_power_spectrum(n_k_bins, n_mu_bins, simulation_box_instance, cosmo_name='base_plikHM_TTTEEE_lowTEB_2015', savename=None):
+    simulation_box_instance.convert_fourier_units_to_distance = True
+    redshift = simulation_box_instance._redshift
+    k = simulation_box_instance.k_box()
+    mu = np.absolute(simulation_box_instance.mu_box())
+    hubble_constant = simulation_box_instance.spectra_instance.hubble
+
+    k_bin_edges = sav.get_k_bin_edges_logspace(n_k_bins, k)
+    mu_bin_edges = sav.get_mu_bin_edges_linspace(n_mu_bins)
+
+    power = fou.get_matter_power_spectrum_two_coords_binned(redshift, k, k, mu, k_bin_edges, mu_bin_edges, hubble_constant, cosmology_name=cosmo_name)
+    if savename is not None:
+        np.save(savename, power)
+    return power
+
+def plot_posterior_distribution():
+    pass
+
 if __name__ == "__main__":
     snapshot_directory = sys.argv[1] #'/home/jsbolton/Sherwood/planck1_80_1024'
     spectra_directory = sys.argv[2] #'/home/keir/Data/Sherwood/planck1_80_1024/snapdir_011'
 
-    plotname = spectra_directory + '/power_spectra_font.pdf' #'/spectrum_750_25.pdf'
-    power_spectra_savename = spectra_directory + '/power_spectra_font.npz'
+    plotname = spectra_directory + '/spectrum_rescaled_smooth_40.pdf'
+    power_spectra_savename = spectra_directory + '/power_spectra_matter_linear.npy'
     cddf_savename = spectra_directory + '/CDDF.npz'
     flux_ascii_filename = '/Users/kwame/Simulations/Sherwood/planck1_80_1024/snapdir_011/spectest.txt'
 
-    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 2, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=True) #, SPECTROGRAPH_FWHM=1.*u.km/u.s)
-    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3) #, flux_ascii_filename=flux_ascii_filename)
+    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 750, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=40.*u.km/u.s)
+    #output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3, flux_ascii_filename=flux_ascii_filename, rescale_ascii=True)
     #output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
     hubble_constant = 0.6724
     #plot_power_spectra(plotname, power_spectra_savename, box_length=30. * u.Mpc / hubble_constant, hubble_constant=hubble_constant) #sim_box_ins)
+
+    output = bin_matter_power_spectrum(15, 4, sim_box_ins, cosmo_name='base_planck_lowl_lowLike_highL_post_BAO_2013', savename=power_spectra_savename)

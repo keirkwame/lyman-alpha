@@ -15,6 +15,20 @@ import sys
 
 from utils import *
 
+def get_matter_power_spectrum_two_coords_binned(redshift, k_box, coord_box1, coord_box2, n_bins1, n_bins2,
+                                                hubble_constant, cosmology_name='base_plikHM_TTTEEE_lowTEB_2015'):
+    from CAMB_bDM_tests import main as camb_wrap
+
+    k_h = k_box.flatten()[1:] / hubble_constant
+    camb_cosmology_instance = camb_wrap.CAMB_bDM_cosmology(cosmology_name=cosmology_name, k_h_range=[np.min(k_h), np.max(k_h)], z=np.linspace(start=redshift, stop=0., num=4))
+    matter_power_spectrum_unbinned = camb_cosmology_instance.get_P_k_z(k_h=k_h)[0][-1]
+
+    x = coord_box1.flatten()[1:]
+    y = coord_box2.flatten()[1:]
+
+    return bin_f_x_y_histogram(x, y, matter_power_spectrum_unbinned, n_bins1, n_bins2)
+
+
 class FourierEstimator(object):
     """Class to estimate power spectra from a box of fluctuations"""
     def __init__(self, first_box, second_box):

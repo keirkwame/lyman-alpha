@@ -8,6 +8,17 @@ import boxes as box
 import fourier_estimators as fou
 import utils as uti
 
+def get_k_bin_edges_logspace(n_k_bins, k_box):
+    k_max = np.max(k_box) #0.704 / u.Mpc
+
+    k_min = np.min(k_box[k_box > 0. / u.Mpc])
+    k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_k_bins - 1))) / u.Mpc
+    return np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_k_bins + 1)) / u.Mpc
+
+def get_mu_bin_edges_linspace(n_mu_bins):
+    return np.linspace(0., 1., n_mu_bins + 1)
+
+
 if __name__ == "__main__":
     """Input arguments: Snapshot number; Snapshot directory path; Width of skewer grid in samples;
     Resolution of spectra in km s^{-1}; Spectra directory path (with '/snapdir_XXX' if necessary)"""
@@ -31,13 +42,9 @@ if __name__ == "__main__":
     #Binning to match GenPK
     n_k_bins = 15
     n_mu_bins = 4
-    k_max = np.max(k_box) #0.704 / u.Mpc
 
-    k_min = np.min(k_box[k_box > 0. / u.Mpc])
-    k_bin_max = mh.exp(mh.log(k_max.value) + ((mh.log(k_max.value) - mh.log(k_min.value)) / (n_k_bins - 1))) / u.Mpc
-    k_bin_edges = np.exp(np.linspace(mh.log(k_min.value), mh.log(k_bin_max.value), n_k_bins + 1)) / u.Mpc
-
-    mu_bin_edges = np.linspace(0., 1., n_mu_bins + 1)
+    k_bin_edges = get_k_bin_edges_logspace(n_k_bins, k_box)
+    mu_bin_edges = get_mu_bin_edges_linspace(n_mu_bins)
 
     fourier_estimator_instance = fou.FourierEstimator3D(delta_flux_box)
     power_binned, k_binned, mu_binned, bin_counts = fourier_estimator_instance.get_power_3D_two_coords_binned(k_box,np.absolute(mu_box),k_bin_edges,mu_bin_edges,count=True)
