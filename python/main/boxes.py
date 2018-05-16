@@ -263,6 +263,11 @@ class SimulationBox(Box):
         print("Scaled by:", scale)
         return scale
 
+    def get_mean_flux(self, optical_depth=None, tau_scaling_factor=1.):
+        if optical_depth is None:
+            optical_depth = self.get_optical_depth()
+        return np.mean(np.exp(-1. * optical_depth * tau_scaling_factor))
+
     def _get_delta_flux(self, tau, mean_flux_desired, mean_flux_specified, tau_scaling_specified):
         if mean_flux_desired is None:
             tau_scaling = 1.
@@ -273,7 +278,7 @@ class SimulationBox(Box):
             tau_scaling = tau_scaling_specified
 
         if mean_flux_specified is None:
-            mean_flux = np.mean(np.exp(-1.*tau*tau_scaling))
+            mean_flux = self.get_mean_flux(optical_depth=tau, tau_scaling_factor=tau_scaling)
         else:
             mean_flux = mean_flux_specified
 

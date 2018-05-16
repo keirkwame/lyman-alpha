@@ -138,19 +138,19 @@ def get_starting_positions_in_uniform_prior(prior_limits, n_walkers):
     return npr.uniform(low = prior_limits[:,0], high = prior_limits[:,1], size = (n_walkers, n_params))
 
 #Posteriors
-def lnprob(param_array, x, y, yerr, lnlike, lnprior, power_linear=None):
-    lnprior_evaluation = lnprior(param_array)
+def lnprob(parameter_array, x, y, yerr, lnlike, lnprior, power_linear=None):
+    lnprior_evaluation = lnprior(parameter_array)
     if not np.isfinite(lnprior_evaluation):
         return -np.inf
     else:
-        return lnprior_evaluation + lnlike(param_array, x, y, yerr, power_linear=power_linear)
+        return lnprior_evaluation + lnlike(parameter_array, x, y, yerr, power_linear=power_linear)
 
 #Sampling
-def gelman_rubin_convergence_statistic(mcmc_chains): #dims: Walkers * Steps * Parameters
+def gelman_rubin_convergence_statistic(mcmc_chains): #dimensions: Walkers * Steps * Parameters
     n_walkers = mcmc_chains.shape[0]
     n_steps = mcmc_chains.shape[1]
 
-    within_chain_variance = np.mean(np.var(mcmc_chains, axis = 1, ddof = 1), axis = 0) #dims: Parameters
+    within_chain_variance = np.mean(np.var(mcmc_chains, axis = 1, ddof = 1), axis = 0) #dimensions: Parameters
 
     chain_means = np.mean(mcmc_chains, axis = 1)
     between_chain_variance = np.var(chain_means, axis = 0, ddof = 1) * n_steps
@@ -158,10 +158,10 @@ def gelman_rubin_convergence_statistic(mcmc_chains): #dims: Walkers * Steps * Pa
     posterior_marginal_variance = ((n_steps - 1) * within_chain_variance / n_steps) + ((n_walkers + 1) * between_chain_variance / n_steps / n_walkers)
     return np.sqrt(posterior_marginal_variance / within_chain_variance)
 
-def get_posterior_samples(lnlike, lnprior, x, y, yerr, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions, power_linear=None):
+def get_posterior_samples(lnlike, lnprior, x, y, yerr, n_params, n_walkers, n_steps, n_burn_in_steps, starting_positions, power_linear=None, lnprob=lnprob):
     sampler = mc.EnsembleSampler(n_walkers, n_params, lnprob, args = (x, y, yerr, lnlike, lnprior, power_linear))
     sampler.run_mcmc(starting_positions, n_steps)
-    return sampler.chain[:, n_burn_in_steps:, :].reshape((-1, n_params)), sampler.chain[:, n_burn_in_steps:, :], sampler #, mc.autocorr.integrated_time(sampler.chain,axis=1), sampler.chain
+    return sampler.chain[:, n_burn_in_steps:, :].reshape((-1, n_params)), sampler.chain[:, n_burn_in_steps:, :], sampler
 
 #Models
 def forest_linear_bias_model(k_mu_tuple, b_F_weighted, beta_F, a, b, c, power_linear=None):
@@ -330,7 +330,7 @@ def forest_HCD_linear_bias_and_parametric_wings_model_full(k_mu_tuple, b_F_weigh
 
     return forest_auto_bias + forest_HCD_linear_bias_and_parametric_wings_model(k_mu_tuple,b_F_weighted,beta_F,b_HCD,a,b,c,plot=plot,F_Voigt=F_Voigt)
 
-def forest_non_linear_function(k, mu, power_linear = None): #k in h / Mpc
+def forest_non_linear_function(k, mu, power_linear=None): #k in h / Mpc
     k_NL = 6.40 #6.77
     alpha_NL = 0.569 #0.550
     k_P = 15.3 #15.9
