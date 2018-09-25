@@ -21,18 +21,18 @@ def get_mu_bin_edges_linspace(n_mu_bins):
 
 if __name__ == "__main__":
     """Input arguments: Snapshot number; Snapshot directory path; Width of skewer grid in samples;
-    Resolution of spectra in km s^{-1}; Spectra directory path (with '/snapdir_XXX' if necessary)"""
+    Width of spectra pixels in km s^{-1}; Spectra directory path (with '/snapdir_XXX' if necessary)"""
 
     SNAPSHOT_NUM = int(sys.argv[1])
     SNAPSHOT_DIR = sys.argv[2]
     GRID_WIDTH_IN_SAMPS = int(sys.argv[3])
-    SPECTRUM_RESOLUTION = int(sys.argv[4]) * u.km / u.s
+    SPECTRUM_PIXEL_WIDTH = int(sys.argv[4]) * u.km / u.s
     RELOAD_SNAPSHOT = False
     SPECTRA_SAVEFILE_ROOT = 'gridded_spectra'
     SPECTRA_SAVEDIR = sys.argv[5]
     POWER_SPECTRA_SAVEFILE = '/power_spectra.npz'
 
-    simulation_box_instance = box.SimulationBox(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS, SPECTRUM_RESOLUTION, reload_snapshot=RELOAD_SNAPSHOT, spectra_savefile_root=SPECTRA_SAVEFILE_ROOT, spectra_savedir=SPECTRA_SAVEDIR)
+    simulation_box_instance = box.SimulationBox(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS, SPECTRUM_PIXEL_WIDTH, reload_snapshot=RELOAD_SNAPSHOT, spectra_savefile_root=SPECTRA_SAVEFILE_ROOT, spectra_savedir=SPECTRA_SAVEDIR)
 
     simulation_box_instance.convert_fourier_units_to_distance = True
     delta_flux_box = simulation_box_instance.skewers_realisation()
