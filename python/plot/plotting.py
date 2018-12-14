@@ -252,17 +252,40 @@ def make_plot_linear_flux_power_3D():
     plot_linear_flux_power_3D(k_mod, power, f_name)
 
 def make_plot_F_HCD_Voigt():
-    f_name = '/Users/kwame/Papers/dla_papers/paper_3D/F_HCD_Voigt.pdf'
+    f_name = '/Users/kwame/Papers/dla_papers/paper_3D/F_HCD_Voigt_sinc.pdf'
 
-    output_col_den_1 = make_plot_voigt_power_spectrum(0, col_den_min = 1.e+18 / (u.cm ** 2), col_den_max = 1.e+19 / (u.cm ** 2))
-    output_col_den_2 = make_plot_voigt_power_spectrum(0, col_den_min=1.e+19 / (u.cm ** 2), col_den_max=1.e+20 / (u.cm ** 2))
-    output_col_den_3 = make_plot_voigt_power_spectrum(0, col_den_min=1.e+20 / (u.cm ** 2), col_den_max=1.e+21 / (u.cm ** 2))
+    output_col_den_1 = make_plot_voigt_power_spectrum(0, col_den_min = 1.6e+17 / (u.cm ** 2), col_den_max = 1.e+19 / (u.cm ** 2))
+    output_col_den_2 = make_plot_voigt_power_spectrum(0, col_den_min=1.6e+17 / (u.cm ** 2), col_den_max=2.e+20 / (u.cm ** 2))
+    output_col_den_3 = make_plot_voigt_power_spectrum(0, col_den_min=1.6e+17 / (u.cm ** 2), col_den_max=1.e+21 / (u.cm ** 2))
 
     k_mod = [output_col_den_1[6], output_col_den_2[6], output_col_den_3[6]] #h / Mpc
     F_HCD_Voigt = np.array([output_col_den_1[11], output_col_den_2[11], output_col_den_3[11]]).real
     F_HCD_Voigt_norm = F_HCD_Voigt[:,1:] / F_HCD_Voigt[:,1][:, np.newaxis]
 
-    plot_F_HCD_Voigt(k_mod, F_HCD_Voigt_norm, f_name)
+    #Insert sinc function
+    #F_HCD_Voigt_norm[-1] = np.sinc(k_mod[-1] * 24.341)
+
+    #plot_F_HCD_Voigt(k_mod, F_HCD_Voigt_norm, f_name)
+    return k_mod, F_HCD_Voigt_norm
+
+def plot_F_HCD_Voigt(k_mod, F_HCD_Voigt, f_name):
+    line_labels = [r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [17, 21]$',r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [17, 22]$',r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [sinc]$']
+    line_colours = ['black'] * 3
+    line_styles = ['-', ':', '--']
+    x_label = r'$k_{||}$ [$h\,\mathrm{Mpc}^{-1}$]'
+    y_label = r'$F_\mathrm{HCD}^\mathrm{Voigt}$'
+    x_log_scale = True
+    y_log_scale = False
+
+    figure, axis = plt.subplots(1)
+    plot_instance = Plot() #font_size = 18.0)
+    figure, axis = plot_instance.plot_lines(k_mod, F_HCD_Voigt, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles, fig=figure, ax=axis)
+    axis.set_xlim([5.e-3, 1.])
+    axis.set_ylim([-0.15, 1.15])
+    #axis.axhline(y = 0.0, color = 'black', ls='-.')
+    axis.legend(frameon = False, fontsize = 13.0)
+    figure.subplots_adjust(right=0.97, left=0.12, bottom=0.13)
+    plt.savefig(f_name)
 
 def make_plot_sample_forest_spectra():
     f_name = '/Users/kwame/Papers/dla_papers/paper_3D/sample_forest_spectra.pdf'
@@ -1104,24 +1127,6 @@ def plot_linear_flux_power_3D(k_mod,power,f_name):
     figure.subplots_adjust(right=0.99, left=0.11, bottom=0.11)
     plt.savefig(f_name)
 
-def plot_F_HCD_Voigt(k_mod, F_HCD_Voigt, f_name):
-    line_labels = [r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [18, 19]$',r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [19, 20]$',r'$\log [N(\mathrm{HI})_\mathrm{min}, N(\mathrm{HI})_\mathrm{max}] = [20, 21]$']
-    line_colours = ['black'] * 3
-    line_styles = ['-', ':', '--']
-    x_label = r'$k_{||}$ [$h\,\mathrm{Mpc}^{-1}$]'
-    y_label = r'$F_\mathrm{HCD}^\mathrm{Voigt}$'
-    x_log_scale = True
-    y_log_scale = False
-
-    figure, axis = plt.subplots(1)
-    plot_instance = Plot() #font_size = 18.0)
-    figure, axis = plot_instance.plot_lines(k_mod, F_HCD_Voigt, line_labels, line_colours, x_label, y_label, x_log_scale, y_log_scale, line_styles=line_styles, fig=figure, ax=axis)
-    axis.set_xlim([5.e-3, 1.])
-    axis.set_ylim([-0.15, 1.15])
-    #axis.axhline(y = 0.0, color = 'black', ls='-.')
-    axis.legend(frameon = False, fontsize = 13.0)
-    figure.subplots_adjust(right=0.97, left=0.12, bottom=0.13)
-    plt.savefig(f_name)
 
 
 class Plot():
@@ -1221,7 +1226,8 @@ if __name__ == "__main__":
 
     #3D paper
     #make_plot_categories()
-    make_plot_BOSS_comparison()
+    #make_plot_BOSS_comparison()
+    k, F_HCD = make_plot_F_HCD_Voigt()
 
     #Thesis
     #make_plot_sample_forest_spectra()
