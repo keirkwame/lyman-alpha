@@ -255,8 +255,8 @@ def make_plot_F_HCD_Voigt():
     f_name = '/Users/kwame/Papers/dla_papers/paper_3D/F_HCD_Voigt_sinc.pdf'
 
     output_col_den_1 = make_plot_voigt_power_spectrum(0, col_den_min = 1.6e+17 / (u.cm ** 2), col_den_max = 1.e+19 / (u.cm ** 2))
-    output_col_den_2 = make_plot_voigt_power_spectrum(0, col_den_min=1.6e+17 / (u.cm ** 2), col_den_max=2.e+20 / (u.cm ** 2))
-    output_col_den_3 = make_plot_voigt_power_spectrum(0, col_den_min=1.6e+17 / (u.cm ** 2), col_den_max=1.e+21 / (u.cm ** 2))
+    output_col_den_2 = make_plot_voigt_power_spectrum(0, col_den_min=1.e+21 / (u.cm ** 2), col_den_max=1.e+22 / (u.cm ** 2))
+    output_col_den_3 = make_plot_voigt_power_spectrum(0, col_den_min=1.6e+17 / (u.cm ** 2), col_den_max=1.e+22 / (u.cm ** 2))
 
     k_mod = [output_col_den_1[6], output_col_den_2[6], output_col_den_3[6]] #h / Mpc
     F_HCD_Voigt = np.array([output_col_den_1[11], output_col_den_2[11], output_col_den_3[11]]).real
