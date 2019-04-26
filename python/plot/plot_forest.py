@@ -22,8 +22,11 @@ def get_simulation_box_instance(SNAPSHOT_NUM, SNAPSHOT_DIR, GRID_WIDTH_IN_SAMPS,
                                                 spectra_savedir=SPECTRA_SAVEDIR, spectrograph_FWHM=SPECTROGRAPH_FWHM)
     return simulation_box_instance
 
-def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux_ascii_filename=None, rescale_ascii=None):
-    optical_depth = simulation_box_instance.get_optical_depth()
+def plot_forest_spectrum(plotname, simulation_box_instance, spectrum_num=0, flux_ascii_filename=None, rescale_ascii=None, redshift_space=True):
+    if redshift_space:
+        optical_depth = simulation_box_instance.get_optical_depth()
+    else:
+        optical_depth = simulation_box_instance.get_optical_depth_real()
     transmitted_flux = np.exp(-1. * optical_depth)
     velocity_samples = simulation_box_instance.r_i('z')
 
@@ -225,7 +228,7 @@ if __name__ == "__main__":
     snapshot_directory = sys.argv[1] #'/home/jsbolton/Sherwood/planck1_80_1024'
     spectra_directory = sys.argv[2] #'/home/keir/Data/Sherwood/planck1_80_1024/snapdir_011'
 
-    plotname = spectra_directory + '/spectrum_2_25.pdf'
+    plotname = spectra_directory + '/spectrum_750_10_real.pdf'
     power_spectra_savename = spectra_directory + '/power_spectra.npz'
     power_spectra_savename2 = spectra_directory + '/power_spectra_matter_linear.npy'
     cddf_savename = spectra_directory + '/CDDF.npz'
@@ -234,9 +237,9 @@ if __name__ == "__main__":
     mean_flux_redshift = np.array([[0.132087971214,4.20000007681],[0.316660922444,3.60000011841],[0.463744789112,3.19999998751],
                                    [0.600909218823,2.80000009225],[0.709329306751,2.39999998443],[0.788885808313,2.0000000305]])
 
-    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 2, 25. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=True) #, SPECTROGRAPH_FWHM=40.*u.km/u.s)
+    sim_box_ins = get_simulation_box_instance(11, snapshot_directory, 750, 10. * u.km / u.s, spectra_directory, RELOAD_SNAPSHOT=False) #, SPECTROGRAPH_FWHM=40.*u.km/u.s)
     #print("Mean flux =", sim_box_ins.get_mean_flux())
-    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3) #, flux_ascii_filename=flux_ascii_filename, rescale_ascii=True)
+    output = plot_forest_spectrum(plotname, sim_box_ins, spectrum_num=3, redshift_space=False) #, flux_ascii_filename=flux_ascii_filename, rescale_ascii=True)
     #output = plot_CDDF(plotname, cddf_savename, sim_box_ins, load_cddf=True)
     hubble_constant = 0.678 #24
     #output = plot_power_spectra(plotname, power_spectra_savename, simulation_box_instance=sim_box_ins, power_spectra_savename2=power_spectra_savename2, plot_errors=True) #box_length=80. * u.Mpc / hubble_constant, hubble_constant=hubble_constant) #sim_box_ins)

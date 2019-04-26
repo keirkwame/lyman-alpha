@@ -251,6 +251,10 @@ class SimulationBox(Box):
         self.spectra_instance.save_file()
         return col_density
 
+    def get_optical_depth_real(self, element=None, ion=None): #Should really calculate pre-factor
+        column_density = self.get_column_density(element=element, ion=ion)
+        return column_density.value * np.mean(self.get_optical_depth()) / np.mean(column_density.value)
+
     def _get_scale(self, tau, mean_flux_desired): #Courtesy of Simeon Bird
         """Get the factor by which we need to multiply the optical depth to get a desired mean flux.
         ie, we want F_obs = bar{F} = < e^-tau >
@@ -289,8 +293,11 @@ class SimulationBox(Box):
         mean_density = np.mean(density)
         return density / mean_density - 1.
 
-    def skewers_realisation(self, mean_flux_desired = None, mean_flux_specified = None, tau_scaling_specified = None):
-        tau = self.get_optical_depth()
+    def skewers_realisation(self, mean_flux_desired = None, mean_flux_specified = None, tau_scaling_specified = None, redshift_space=True):
+        if redshift_space:
+            tau = self.get_optical_depth()
+        else:
+            tau = self.get_optical_depth_real()
         delta_flux = self._get_delta_flux(tau, mean_flux_desired, mean_flux_specified, tau_scaling_specified)
         return delta_flux.reshape((self._grid_samps, self._grid_samps, -1))
 
